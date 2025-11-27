@@ -2976,6 +2976,7 @@ INSTALLED_APPS = [
 
     # Enrollment API
     'openedx.core.djangoapps.enrollments.apps.EnrollmentsConfig',
+    'lms.djangoapps.program_enrollments.apps.ProgramEnrollmentsConfig',  # Program enrollments app
 
     # Entitlement API
     'common.djangoapps.entitlements.apps.EntitlementsConfig',
@@ -3170,6 +3171,12 @@ INSTALLED_APPS = [
     "openedx_learning.apps.authoring.subsections",
     "openedx_learning.apps.authoring.sections",
     'openedx.core.djangoapps.content_libraries.apps.ContentLibrariesConfig',
+    
+    # Additional apps with models that need explicit registration
+    'openedx.core.djangoapps.course_live.apps.CourseLiveConfig',  # Course Live app
+    'openedx.core.djangoapps.credentials.apps.CredentialsConfig',  # Credentials app
+    'openedx.core.djangoapps.ccxcon.apps.CCXConnectorConfig',  # CCX Connector app
+    'openedx.core.djangoapps.content.search.apps.ContentSearchConfig',  # Content Search app
     
 ]
 
@@ -4607,7 +4614,8 @@ from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType 
 # Get plugin apps but exclude apps that are manually added to INSTALLED_APPS
 plugin_apps = get_plugin_apps(ProjectType.LMS)
 # Exclude apps that are manually added to avoid duplicates
-excluded_apps = ['content_libraries', 'bookmarks', 'discussions', 'theming']
+excluded_apps = ['content_libraries', 'bookmarks', 'discussions', 'theming', 'program_enrollments', 
+                 'course_live', 'credentials', 'ccxcon', 'content.search']
 plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
 INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.LMS, SettingsType.COMMON)
