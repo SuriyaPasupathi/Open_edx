@@ -2889,7 +2889,7 @@ INSTALLED_APPS = [
 
     # Site configuration for theming and behavioral modification
     'openedx.core.djangoapps.site_configuration',
-
+    'openedx.core.djangoapps.theming.apps.ThemingConfig',  # Theming app
     # Video block configs (This will be moved to Video once it becomes an XBlock)
     'openedx.core.djangoapps.video_config',
 
@@ -4607,7 +4607,7 @@ from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType 
 # Get plugin apps but exclude apps that are manually added to INSTALLED_APPS
 plugin_apps = get_plugin_apps(ProjectType.LMS)
 # Exclude apps that are manually added to avoid duplicates
-excluded_apps = ['content_libraries', 'bookmarks', 'discussions']
+excluded_apps = ['content_libraries', 'bookmarks', 'discussions', 'theming']
 plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
 INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.LMS, SettingsType.COMMON)

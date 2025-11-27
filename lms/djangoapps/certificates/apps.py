@@ -36,9 +36,9 @@ class CertificatesConfig(AppConfig):
             # Verify signal receivers are registered
             from openedx_events.learning.signals import CERTIFICATE_CREATED, CERTIFICATE_CHANGED
             
-            # Count registered receivers
-            created_count = len(CERTIFICATE_CREATED._live_receivers())
-            changed_count = len(CERTIFICATE_CHANGED._live_receivers())
+            # Count registered receivers (pass None as sender to get all receivers)
+            created_count = len(CERTIFICATE_CREATED._live_receivers(None))
+            changed_count = len(CERTIFICATE_CHANGED._live_receivers(None))
             
             log.info(f"CERTIFICATE_CREATED signal has {created_count} receiver(s) registered")
             log.info(f"CERTIFICATE_CHANGED signal has {changed_count} receiver(s) registered")
