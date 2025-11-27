@@ -2957,6 +2957,7 @@ INSTALLED_APPS = [
 
     # Discussion forums
     'openedx.core.djangoapps.django_comment_common',
+    'openedx.core.djangoapps.discussions.apps.DiscussionsConfig',  # Discussions app
 
     # Notes
     'lms.djangoapps.edxnotes',
@@ -4606,7 +4607,7 @@ from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType 
 # Get plugin apps but exclude apps that are manually added to INSTALLED_APPS
 plugin_apps = get_plugin_apps(ProjectType.LMS)
 # Exclude apps that are manually added to avoid duplicates
-excluded_apps = ['content_libraries', 'bookmarks']
+excluded_apps = ['content_libraries', 'bookmarks', 'discussions']
 plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
 INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.LMS, SettingsType.COMMON)
