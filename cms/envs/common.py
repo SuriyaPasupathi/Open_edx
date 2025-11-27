@@ -1702,6 +1702,7 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.course_live.apps.CourseLiveConfig',  # Course Live app
     'openedx.core.djangoapps.credentials.apps.CredentialsConfig',  # Credentials app
     'openedx.core.djangoapps.ccxcon.apps.CCXConnectorConfig',  # CCX Connector app
+    'openedx.core.djangoapps.content_staging.apps.ContentStagingAppConfig',  # Content Staging app
 ]
 
 
@@ -2294,7 +2295,7 @@ from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType
 plugin_apps = get_plugin_apps(ProjectType.CMS)
 # Exclude apps that are manually added to avoid duplicates
 excluded_apps = ['content_libraries', 'bookmarks', 'discussions', 'theming', 'program_enrollments', 
-                 'course_live', 'credentials', 'ccxcon', 'content.search']
+                 'course_live', 'credentials', 'ccxcon', 'content.search', 'content_staging']
 plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
 INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.CMS, SettingsType.COMMON)
