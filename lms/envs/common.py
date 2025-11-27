@@ -3167,6 +3167,8 @@ INSTALLED_APPS = [
     "openedx_learning.apps.authoring.units",
     "openedx_learning.apps.authoring.subsections",
     "openedx_learning.apps.authoring.sections",
+    'openedx.core.djangoapps.content_libraries.apps.ContentLibrariesConfig',
+    
 ]
 
 ######################### CSRF #########################################
@@ -4600,7 +4602,10 @@ SYSTEM_WIDE_ROLE_CLASSES = []
 
 from edx_django_utils.plugins import get_plugin_apps, add_plugins  # pylint: disable=wrong-import-position,wrong-import-order
 from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType  # pylint: disable=wrong-import-position
-INSTALLED_APPS.extend(get_plugin_apps(ProjectType.LMS))
+# Get plugin apps but exclude content_libraries since it's manually added to INSTALLED_APPS
+plugin_apps = get_plugin_apps(ProjectType.LMS)
+plugin_apps = [app for app in plugin_apps if 'content_libraries' not in str(app).lower()]
+INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.LMS, SettingsType.COMMON)
 
 DEPRECATED_ADVANCED_COMPONENT_TYPES = []
