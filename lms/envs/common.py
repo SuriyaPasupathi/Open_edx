@@ -3095,6 +3095,7 @@ INSTALLED_APPS = [
     # Features
     'openedx.features.calendar_sync',
     'openedx.features.course_bookmarks',
+    'openedx.core.djangoapps.bookmarks.apps.BookmarksConfig',  # Bookmarks app
     'openedx.features.course_experience',
     'openedx.features.enterprise_support.apps.EnterpriseSupportConfig',
     'openedx.features.course_duration_limits',
@@ -4602,9 +4603,11 @@ SYSTEM_WIDE_ROLE_CLASSES = []
 
 from edx_django_utils.plugins import get_plugin_apps, add_plugins  # pylint: disable=wrong-import-position,wrong-import-order
 from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType  # pylint: disable=wrong-import-position
-# Get plugin apps but exclude content_libraries since it's manually added to INSTALLED_APPS
+# Get plugin apps but exclude apps that are manually added to INSTALLED_APPS
 plugin_apps = get_plugin_apps(ProjectType.LMS)
-plugin_apps = [app for app in plugin_apps if 'content_libraries' not in str(app).lower()]
+# Exclude apps that are manually added to avoid duplicates
+excluded_apps = ['content_libraries', 'bookmarks']
+plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
 INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.LMS, SettingsType.COMMON)
 

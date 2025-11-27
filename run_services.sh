@@ -4,8 +4,8 @@
 source ../env/bin/activate
 
 # Set environment variables
-export LMS_CFG="/home/suriya-vcw/Desktop/manual build/edx-platform/lms.env.yml"
-export CMS_CFG="/home/suriya-vcw/Desktop/manual build/edx-platform/cms.env.yml"
+export LMS_CFG=./lms.env.yml
+export CMS_CFG=./cms.env.yml
 
 # Function to run LMS
 run_lms() {
