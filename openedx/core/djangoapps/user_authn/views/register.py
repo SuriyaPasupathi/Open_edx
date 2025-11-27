@@ -564,7 +564,8 @@ class RegistrationView(APIView):
                             content_type="application/json")
 
     @method_decorator(csrf_exempt)
-    @method_decorator(ratelimit(key=REAL_IP_KEY, rate=settings.REGISTRATION_RATELIMIT, method='POST', block=False))
+    # DISABLED: Rate limiting disabled for FastAPI integration
+    # @method_decorator(ratelimit(key=REAL_IP_KEY, rate=settings.REGISTRATION_RATELIMIT, method='POST', block=False))
     def post(self, request):
         """Create the user's account.
 
@@ -883,9 +884,10 @@ class RegistrationValidationView(APIView):
         "country": country_handler
     }
 
-    @method_decorator(
-        ratelimit(key=REAL_IP_KEY, rate=settings.REGISTRATION_VALIDATION_RATELIMIT, method='POST', block=True)
-    )
+    # DISABLED: Rate limiting disabled for FastAPI integration
+    # @method_decorator(
+    #     ratelimit(key=REAL_IP_KEY, rate=settings.REGISTRATION_VALIDATION_RATELIMIT, method='POST', block=True)
+    # )
     def post(self, request):
         """
         POST /api/user/v1/validation/registration/

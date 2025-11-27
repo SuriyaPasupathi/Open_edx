@@ -4292,7 +4292,7 @@ COMPLETION_BY_VIEWING_DELAY_MS = 5000
 # .. toggle_use_cases: open_edx
 # .. toggle_creation_date: 2018-01-08
 # .. toggle_tickets: https://github.com/openedx/edx-platform/pull/16951
-RATELIMIT_ENABLE = True
+RATELIMIT_ENABLE = False  # DISABLED: Rate limiting disabled for FastAPI integration
 
 # .. setting_name: RATELIMIT_RATE
 # .. setting_default: 120/m

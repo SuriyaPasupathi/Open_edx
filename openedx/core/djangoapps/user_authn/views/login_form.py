@@ -127,12 +127,13 @@ def get_login_session_form(request):
 
 
 @require_http_methods(['GET'])
-@ratelimit(
-    key='openedx.core.djangoapps.util.ratelimit.real_ip',
-    rate=settings.LOGIN_AND_REGISTER_FORM_RATELIMIT,
-    method='GET',
-    block=True
-)
+# DISABLED: Rate limiting disabled for FastAPI integration
+# @ratelimit(
+#     key='openedx.core.djangoapps.util.ratelimit.real_ip',
+#     rate=settings.LOGIN_AND_REGISTER_FORM_RATELIMIT,
+#     method='GET',
+#     block=True
+# )
 @ensure_csrf_cookie
 @xframe_allow_whitelisted
 def login_and_registration_form(request, initial_mode="login"):
