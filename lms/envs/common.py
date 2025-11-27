@@ -3004,6 +3004,7 @@ INSTALLED_APPS = [
 
     # edX Mobile API
     'lms.djangoapps.mobile_api.apps.MobileApiConfig',
+    'push_notifications',  # Required for mobile API push notifications
     'social_django',
 
     # Surveys
