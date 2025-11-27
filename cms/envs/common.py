@@ -1517,12 +1517,14 @@ INSTALLED_APPS = [
 
     # Site configuration for theming and behavioral modification
     'openedx.core.djangoapps.site_configuration',
+    'openedx.core.djangoapps.theming.apps.ThemingConfig',  # Theming app
 
     # Ability to detect and special-case crawler behavior
     'openedx.core.djangoapps.crawlers',
 
     # Discussion
     'openedx.core.djangoapps.django_comment_common',
+    'openedx.core.djangoapps.discussions.apps.DiscussionsConfig',  # Discussions app
 
     # Notifications
     'openedx.core.djangoapps.notifications',
@@ -1640,10 +1642,10 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content_tagging',
 
     # Search
-    'openedx.core.djangoapps.content.search',
+    'openedx.core.djangoapps.content.search.apps.ContentSearchConfig',  # Content Search app
 
     # For Programs API
-    'lms.djangoapps.program_enrollments',
+    'lms.djangoapps.program_enrollments.apps.ProgramEnrollmentsConfig',  # Program enrollments app
 
     'openedx.features.course_duration_limits',
     'openedx.features.content_type_gating',
@@ -1693,6 +1695,13 @@ INSTALLED_APPS = [
     "openedx_learning.apps.authoring.units",
     "openedx_learning.apps.authoring.subsections",
     "openedx_learning.apps.authoring.sections",
+    'openedx.core.djangoapps.content_libraries.apps.ContentLibrariesConfig',  # Content Libraries app
+    
+    # Additional apps with models that need explicit registration
+    'openedx.core.djangoapps.bookmarks.apps.BookmarksConfig',  # Bookmarks app
+    'openedx.core.djangoapps.course_live.apps.CourseLiveConfig',  # Course Live app
+    'openedx.core.djangoapps.credentials.apps.CredentialsConfig',  # Credentials app
+    'openedx.core.djangoapps.ccxcon.apps.CCXConnectorConfig',  # CCX Connector app
 ]
 
 
@@ -2281,7 +2290,13 @@ SYSTEM_WIDE_ROLE_CLASSES = []
 from edx_django_utils.plugins import get_plugin_apps, add_plugins
 from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType
 
-INSTALLED_APPS.extend(get_plugin_apps(ProjectType.CMS))
+# Get plugin apps but exclude apps that are manually added to INSTALLED_APPS
+plugin_apps = get_plugin_apps(ProjectType.CMS)
+# Exclude apps that are manually added to avoid duplicates
+excluded_apps = ['content_libraries', 'bookmarks', 'discussions', 'theming', 'program_enrollments', 
+                 'course_live', 'credentials', 'ccxcon', 'content.search']
+plugin_apps = [app for app in plugin_apps if not any(excluded in str(app).lower() for excluded in excluded_apps)]
+INSTALLED_APPS.extend(plugin_apps)
 add_plugins(__name__, ProjectType.CMS, SettingsType.COMMON)
 
 # Course exports streamed in blocks of this size. 8192 or 8kb is the default
