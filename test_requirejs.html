@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RequireJS Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        pre { background-color: #f8f9fa; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 RequireJS Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>1. Open browser console (F12 → Console)</p>
+        <p>2. Click "Test RequireJS" below</p>
+        <p>3. Check if you see our debug messages</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🧪 Test RequireJS</h3>
+        <button onclick="testRequireJS()">Test RequireJS</button>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            results.appendChild(div);
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearConsole() {
+            document.getElementById('results').innerHTML = '';
+            console.clear();
+        }
+        
+        function testRequireJS() {
+            log('🚀 Starting RequireJS test...', 'info');
+            
+            // Test 1: Check if RequireJS is available
+            if (typeof require !== 'undefined') {
+                log('✅ RequireJS is available', 'success');
+                
+                // Test 2: Try to load a simple module
+                log('🔍 Testing module loading...', 'info');
+                
+                require(['js/student_account/logistration_factory'], function(LogistrationFactory) {
+                    log('✅ LogistrationFactory loaded successfully', 'success');
+                    log('LogistrationFactory type: ' + typeof LogistrationFactory, 'info');
+                    
+                    // Test 3: Try to call the factory
+                    log('🔍 Testing LogistrationFactory call...', 'info');
+                    try {
+                        LogistrationFactory({
+                            initial_mode: 'login',
+                            third_party_auth: {},
+                            platform_name: 'Test Platform'
+                        });
+                        log('✅ LogistrationFactory called successfully', 'success');
+                    } catch (error) {
+                        log('❌ Error calling LogistrationFactory: ' + error.message, 'error');
+                    }
+                    
+                }, function(error) {
+                    log('❌ Failed to load LogistrationFactory: ' + error.message, 'error');
+                    log('Error details: ' + JSON.stringify(error), 'error');
+                });
+                
+            } else {
+                log('❌ RequireJS is NOT available', 'error');
+            }
+            
+            // Test 4: Check for any JavaScript errors
+            window.addEventListener('error', function(e) {
+                log('❌ JavaScript Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno, 'error');
+            });
+            
+            log('🏁 RequireJS test complete', 'info');
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            log('🔍 RequireJS test page ready', 'info');
+            log('Click "Test RequireJS" to start...', 'info');
+        });
+    </script>
+</body>
+</html>

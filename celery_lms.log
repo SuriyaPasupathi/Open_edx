@@ -1,0 +1,2 @@
+[2025-11-24 13:47:07,880: ERROR/MainProcess] Process 'ForkPoolWorker-2' pid:10868 exited with 'signal 15 (SIGTERM)'
+[2025-11-24 13:47:07,884: ERROR/MainProcess] Process 'ForkPoolWorker-1' pid:10867 exited with 'signal 15 (SIGTERM)'

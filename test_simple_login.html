@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        pre { background-color: #f8f9fa; padding: 10px; }
+        input, button { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Simple Login Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>1. Open browser console (F12 → Console)</p>
+        <p>2. Click "Test Simple Login" below</p>
+        <p>3. This bypasses all the complex JavaScript and tests the API directly</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🧪 Simple Login Test</h3>
+        <form id="simple-login-form">
+            <div>
+                <label>Email:</label>
+                <input type="email" name="email" value="ishu@gmail.com" required>
+            </div>
+            <div>
+                <label>Password:</label>
+                <input type="password" name="password" value="admin@123" required>
+            </div>
+            <button type="submit">Test Simple Login</button>
+        </form>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            results.appendChild(div);
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        document.getElementById('simple-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            log('🚀 Simple login form submitted', 'info');
+            
+            const formData = new FormData(this);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+            
+            log('Form data: ' + JSON.stringify(data), 'info');
+            
+            // Get CSRF token from cookies
+            const csrfToken = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+            const csrfValue = csrfToken ? csrfToken.split('=')[1] : '';
+            log('CSRF token: ' + (csrfValue ? 'Found' : 'Not found'), csrfValue ? 'success' : 'error');
+            
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (csrfValue) {
+                headers['X-CSRFToken'] = csrfValue;
+            }
+            
+            fetch('/api/user/v1/account/login_session/', {
+                method: 'POST',
+                headers: headers,
+                credentials: 'same-origin',  // Include cookies
+                body: new URLSearchParams(data)
+            })
+            .then(response => {
+                log('Response status: ' + response.status, response.ok ? 'success' : 'error');
+                return response.text();
+            })
+            .then(text => {
+                log('Response text: ' + text, 'info');
+                try {
+                    const json = JSON.parse(text);
+                    log('Parsed JSON: ' + JSON.stringify(json, null, 2), 'success');
+                    
+                    if (json.success && json.redirect_url) {
+                        log('✅ Login successful! Redirect URL: ' + json.redirect_url, 'success');
+                        
+                        // Test if session is working by checking dashboard access
+                        log('Testing session by accessing dashboard...', 'info');
+                        fetch('/dashboard', {
+                            method: 'GET',
+                            credentials: 'same-origin'
+                        })
+                        .then(response => {
+                            log('Dashboard response status: ' + response.status, response.ok ? 'success' : 'error');
+                            if (response.ok) {
+                                log('✅ Session is working! Dashboard accessible', 'success');
+                                log('Redirecting in 2 seconds...', 'info');
+                                setTimeout(() => {
+                                    window.location.href = json.redirect_url;
+                                }, 2000);
+                            } else {
+                                log('❌ Session not working - dashboard not accessible', 'error');
+                                log('This means the login session is not being maintained', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            log('❌ Dashboard test failed: ' + error.message, 'error');
+                        });
+                    } else {
+                        log('❌ Login failed or no redirect URL', 'error');
+                    }
+                } catch (e) {
+                    log('❌ Failed to parse JSON: ' + e.message, 'error');
+                }
+            })
+            .catch(error => {
+                log('❌ Request failed: ' + error.message, 'error');
+            });
+        });
+        
+        // Get CSRF token from server
+        function getCSRFToken() {
+            return fetch('/api/user/v1/account/login_session/', {
+                method: 'GET',
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                // Extract CSRF token from response headers or cookies
+                const csrfToken = response.headers.get('X-CSRFToken') || 
+                                 document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+                return csrfToken ? csrfToken.split('=')[1] : null;
+            })
+            .catch(error => {
+                log('❌ Failed to get CSRF token: ' + error.message, 'error');
+                return null;
+            });
+        }
+        
+        // Auto-log on page load
+        window.addEventListener('load', () => {
+            log('🔍 Simple login test page ready', 'info');
+            log('Getting CSRF token...', 'info');
+            
+            getCSRFToken().then(token => {
+                if (token) {
+                    log('✅ CSRF token obtained: ' + token.substring(0, 10) + '...', 'success');
+                } else {
+                    log('❌ Could not get CSRF token', 'error');
+                }
+                log('Click "Test Simple Login" to test the API directly', 'info');
+            });
+        });
+    </script>
+</body>
+</html>

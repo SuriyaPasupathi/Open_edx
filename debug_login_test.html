@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Open edX Login Debug Test</h1>
+    
+    <div class="debug-section info">
+        <h3>📋 Instructions</h3>
+        <p>1. Open the browser console (F12 → Console tab)</p>
+        <p>2. Click "Test Login" below</p>
+        <p>3. Watch the console output for detailed debug information</p>
+        <p>4. Check if the redirect happens or if there are any errors</p>
+    </div>
+    
+    <div class="debug-section">
+        <h3>🧪 Test Login</h3>
+        <button onclick="testLogin()">Test Login (ishu@gmail.com / admin@123)</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+        <button onclick="testDirectRedirect()">Test Direct Redirect</button>
+    </div>
+    
+    <div class="debug-section">
+        <h3>📊 Debug Output</h3>
+        <div id="debug-output"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>🔗 Quick Links</h3>
+        <a href="/login" target="_blank">Open Login Page</a> |
+        <a href="/dashboard" target="_blank">Open Dashboard</a> |
+        <a href="/api/user/v1/account/login_session/" target="_blank">API Endpoint</a>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const output = document.getElementById('debug-output');
+            const div = document.createElement('div');
+            div.className = `debug-section ${type}`;
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearLogs() {
+            document.getElementById('debug-output').innerHTML = '';
+            console.clear();
+        }
+        
+        function testDirectRedirect() {
+            log('Testing direct redirect to dashboard...', 'info');
+            window.location.href = '/dashboard';
+        }
+        
+        async function testLogin() {
+            log('🚀 Starting login test...', 'info');
+            
+            try {
+                // Test 1: Check if we can access the login page
+                log('Step 1: Testing login page access...', 'info');
+                const loginResponse = await fetch('/login');
+                log(`Login page status: ${loginResponse.status}`, loginResponse.ok ? 'success' : 'error');
+                
+                // Test 2: Get CSRF token
+                log('Step 2: Getting CSRF token...', 'info');
+                const loginHtml = await loginResponse.text();
+                const csrfMatch = loginHtml.match(/name="csrfmiddlewaretoken" value="([^"]+)"/);
+                let csrfToken = null;
+                
+                if (csrfMatch) {
+                    csrfToken = csrfMatch[1];
+                    log(`CSRF token found: ${csrfToken.substring(0, 10)}...`, 'success');
+                } else {
+                    log('No CSRF token found in HTML, trying cookie...', 'info');
+                    csrfToken = getCookie('csrftoken');
+                    if (csrfToken) {
+                        log(`CSRF token from cookie: ${csrfToken.substring(0, 10)}...`, 'success');
+                    } else {
+                        log('No CSRF token found in cookie either', 'error');
+                    }
+                }
+                
+                // Test 3: Make login request
+                log('Step 3: Making login request...', 'info');
+                const formData = new FormData();
+                formData.append('email', 'ishu@gmail.com');
+                formData.append('password', 'admin@123');
+                
+                const headers = {};
+                if (csrfToken) {
+                    headers['X-CSRFToken'] = csrfToken;
+                }
+                
+                const loginRequest = await fetch('/api/user/v1/account/login_session/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: headers
+                });
+                
+                log(`Login request status: ${loginRequest.status}`, loginRequest.ok ? 'success' : 'error');
+                
+                const responseText = await loginRequest.text();
+                log(`Response text: ${responseText}`, 'info');
+                
+                try {
+                    const responseJson = JSON.parse(responseText);
+                    log(`Parsed JSON: ${JSON.stringify(responseJson, null, 2)}`, 'success');
+                    
+                    if (responseJson.success && responseJson.redirect_url) {
+                        log(`✅ Login successful! Redirect URL: ${responseJson.redirect_url}`, 'success');
+                        log('Testing redirect in 2 seconds...', 'info');
+                        setTimeout(() => {
+                            log('Redirecting now...', 'info');
+                            window.location.href = responseJson.redirect_url;
+                        }, 2000);
+                    } else {
+                        log('❌ Login response missing success or redirect_url', 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Failed to parse JSON response: ${e.message}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            log('🔍 Debug test page loaded. Ready to test login flow.', 'info');
+            log('Click "Test Login" to start debugging...', 'info');
+        });
+    </script>
+</body>
+</html>

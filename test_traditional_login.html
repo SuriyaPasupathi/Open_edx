@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traditional Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        pre { background-color: #f8f9fa; padding: 10px; }
+        input, button { padding: 8px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Traditional Login Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>1. This test uses the traditional login form (not the API)</p>
+        <p>2. It should set session cookies properly</p>
+        <p>3. After login, it should redirect to dashboard</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🧪 Traditional Login Test</h3>
+        <form id="traditional-login-form" action="/login" method="POST">
+            <div>
+                <label>Email:</label>
+                <input type="email" name="email" value="ishu@gmail.com" required>
+            </div>
+            <div>
+                <label>Password:</label>
+                <input type="password" name="password" value="admin@123" required>
+            </div>
+            <input type="hidden" name="next" value="/dashboard">
+            <button type="submit">Test Traditional Login</button>
+        </form>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            results.appendChild(div);
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        document.getElementById('traditional-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            log('🚀 Traditional login form submitted', 'info');
+            
+            const formData = new FormData(this);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                next: formData.get('next')
+            };
+            
+            log('Form data: ' + JSON.stringify(data), 'info');
+            
+            // Submit the form traditionally
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                credentials: 'same-origin',
+                body: new URLSearchParams(data)
+            })
+            .then(response => {
+                log('Response status: ' + response.status, response.ok ? 'success' : 'error');
+                log('Response URL: ' + response.url, 'info');
+                
+                if (response.redirected) {
+                    log('✅ Redirected to: ' + response.url, 'success');
+                    log('Redirecting in 2 seconds...', 'info');
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                    }, 2000);
+                } else {
+                    return response.text();
+                }
+            })
+            .then(text => {
+                if (text) {
+                    log('Response text: ' + text.substring(0, 200) + '...', 'info');
+                }
+            })
+            .catch(error => {
+                log('❌ Request failed: ' + error.message, 'error');
+            });
+        });
+        
+        // Auto-log on page load
+        window.addEventListener('load', () => {
+            log('🔍 Traditional login test page ready', 'info');
+            log('Click "Test Traditional Login" to test the traditional login form', 'info');
+        });
+    </script>
+</body>
+</html>

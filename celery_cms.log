@@ -1,0 +1,6 @@
+[2025-11-24 10:40:52,494: INFO/MainProcess] Connected to memory://localhost//
+[2025-11-24 10:40:52,517: INFO/MainProcess] celery@suriya-vcw-Precision-5520 ready.
+[2025-11-24 10:43:21,888: INFO/MainProcess] Connected to memory://localhost//
+[2025-11-24 10:43:21,903: INFO/MainProcess] celery@suriya-vcw-Precision-5520 ready.
+[2025-11-24 13:47:08,698: ERROR/MainProcess] Process 'ForkPoolWorker-2' pid:10903 exited with 'signal 15 (SIGTERM)'
+[2025-11-24 13:47:08,751: ERROR/MainProcess] Process 'ForkPoolWorker-1' pid:10902 exited with 'signal 15 (SIGTERM)'
