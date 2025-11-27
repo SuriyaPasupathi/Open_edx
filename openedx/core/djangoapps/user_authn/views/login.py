@@ -246,11 +246,13 @@ def _authenticate_first_party(request, unauthenticated_user, third_party_auth_re
     """
     Use Django authentication on the given request, using rate limiting if configured
     """
-    should_be_rate_limited = getattr(request, "limited", False)
-    if should_be_rate_limited:
-        raise AuthFailedError(
-            _("Too many failed login attempts. Try again later.")
-        )  # lint-amnesty, pylint: disable=raise-missing-from
+    # DISABLED: Rate limiting disabled for FastAPI integration
+    # should_be_rate_limited = getattr(request, "limited", False)
+    # if should_be_rate_limited:
+    #     raise AuthFailedError(
+    #         _("Too many failed login attempts. Try again later.")
+    #     )  # lint-amnesty, pylint: disable=raise-missing-from
+    should_be_rate_limited = False  # Always allow login attempts
 
     # If the user doesn't exist, we want to set the username to an invalid username so that authentication is guaranteed
     # to fail and we can take advantage of the ratelimited backend
@@ -533,18 +535,19 @@ def enterprise_selection_page(request, user, next_url):
 
 @ensure_csrf_cookie
 @require_http_methods(["POST"])
-@ratelimit(
-    key="openedx.core.djangoapps.util.ratelimit.request_post_email_or_username",
-    rate=settings.LOGISTRATION_PER_EMAIL_RATELIMIT_RATE,
-    method="POST",
-    block=False,
-)  # lint-amnesty, pylint: disable=too-many-statements
-@ratelimit(
-    key="openedx.core.djangoapps.util.ratelimit.real_ip",
-    rate=settings.LOGISTRATION_RATELIMIT_RATE,
-    method="POST",
-    block=False,
-)  # lint-amnesty, pylint: disable=too-many-statements
+# DISABLED: Rate limiting decorators disabled for FastAPI integration
+# @ratelimit(
+#     key="openedx.core.djangoapps.util.ratelimit.request_post_email_or_username",
+#     rate=settings.LOGISTRATION_PER_EMAIL_RATELIMIT_RATE,
+#     method="POST",
+#     block=False,
+# )  # lint-amnesty, pylint: disable=too-many-statements
+# @ratelimit(
+#     key="openedx.core.djangoapps.util.ratelimit.real_ip",
+#     rate=settings.LOGISTRATION_RATELIMIT_RATE,
+#     method="POST",
+#     block=False,
+# )  # lint-amnesty, pylint: disable=too-many-statements
 def login_user(request, api_version="v1"):  # pylint: disable=too-many-statements
     """
     AJAX request to log in the user.
