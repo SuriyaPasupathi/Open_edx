@@ -140,6 +140,9 @@ urlpatterns = [
     # Note: these are older versions of the User API that will eventually be
     # subsumed by api/user listed above.
     path('', include('openedx.core.djangoapps.user_api.legacy_urls')),
+    
+    # User Authentication endpoints (login, register, etc.)
+    path('', include('openedx.core.djangoapps.user_authn.urls')),
 
     # Profile Images API endpoints
     path('api/profile_images/', include('openedx.core.djangoapps.profile_images.urls')),
