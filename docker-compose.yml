@@ -97,9 +97,13 @@ services:
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
         echo 'Running LMS migrations...' &&
-        python manage.py lms migrate --settings=devstack --fake-initial || python manage.py lms migrate --settings=devstack || true &&
+        python manage.py lms migrate --settings=devstack || echo 'Migrations completed with warnings' &&
         echo 'Running LMS student module history migrations...' &&
-        python manage.py lms migrate --database=student_module_history --settings=devstack || true &&
+        python manage.py lms migrate --database=student_module_history --settings=devstack || echo 'Student module history migrations completed with warnings' &&
+        echo 'Ensuring theming migrations are applied...' &&
+        python manage.py lms migrate theming --settings=devstack || echo 'Theming migrations check completed' &&
+        echo 'Creating Site record...' &&
+        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.devstack")\ndjango.setup()\nfrom django.contrib.sites.models import Site\nfrom django.conf import settings\ndomain = getattr(settings, "LMS_ROOT_URL", "http://localhost:18000").replace("http://", "").replace("https://", "")\nsite, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": getattr(settings, "PLATFORM_NAME", "Open edX")})\nif created:\n    print(f"Site created: {site.domain}")\nelse:\n    site.domain = domain\n    site.name = getattr(settings, "PLATFORM_NAME", "Open edX")\n    site.save()\n    print(f"Site updated: {site.domain}")\n' > /tmp/create_site.py && python /tmp/create_site.py || echo 'Site creation skipped' && rm -f /tmp/create_site.py &&
         echo 'Migrations complete. Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' &&
         python manage.py lms collectstatic --noinput --settings=devstack &&
@@ -149,7 +153,9 @@ services:
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
         echo 'Running migrations...' &&
-        python manage.py cms migrate --settings=devstack --fake-initial || python manage.py cms migrate --settings=devstack || true &&
+        python manage.py cms migrate --settings=devstack || echo 'Some migrations may have failed' &&
+        echo 'Creating Site record...' &&
+        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms.envs.devstack")\ndjango.setup()\nfrom django.contrib.sites.models import Site\nfrom django.conf import settings\ndomain = getattr(settings, "LMS_ROOT_URL", "http://localhost:18000").replace("http://", "").replace("https://", "")\nsite, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": getattr(settings, "PLATFORM_NAME", "Open edX")})\nif created:\n    print(f"Site created: {site.domain}")\nelse:\n    site.domain = domain\n    site.name = getattr(settings, "PLATFORM_NAME", "Open edX")\n    site.save()\n    print(f"Site updated: {site.domain}")\n' > /tmp/create_site.py && python /tmp/create_site.py || echo 'Site creation skipped' && rm -f /tmp/create_site.py &&
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
