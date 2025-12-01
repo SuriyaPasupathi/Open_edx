@@ -127,12 +127,12 @@ services:
         echo '==========================================' &&
         python manage.py lms runserver 0.0.0.0:18000 --settings=devstack
       "
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:18000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -f http://localhost:18000 || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 60s
     networks:
       - edx_network
 
