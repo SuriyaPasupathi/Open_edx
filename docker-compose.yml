@@ -92,22 +92,39 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo '==========================================' &&
+        echo 'Starting LMS Container' &&
+        echo '==========================================' &&
         echo 'Building webpack assets...' &&
         export STATIC_ROOT_LMS=/app/staticfiles &&
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
-        echo 'Running LMS migrations...' &&
-        python manage.py lms migrate --settings=devstack &&
-        echo 'Running LMS student module history migrations...' &&
-        python manage.py lms migrate --database=student_module_history --settings=devstack || echo 'Student module history migrations completed' &&
-        echo 'Ensuring theming migrations are applied...' &&
-        python manage.py lms migrate theming --settings=devstack &&
-        echo 'Creating Site record...' &&
-        python manage.py lms shell --settings=devstack -c "from django.contrib.sites.models import Site; from django.conf import settings; domain = getattr(settings, 'LMS_ROOT_URL', 'http://localhost:18000').replace('http://', '').replace('https://', ''); platform_name = getattr(settings, 'PLATFORM_NAME', 'Open edX'); site, created = Site.objects.get_or_create(id=1, defaults={'domain': domain, 'name': platform_name}); site.domain = domain; site.name = platform_name; site.save(); print('Site ready: ' + site.domain)" || echo 'Site creation skipped' &&
-        echo 'Migrations complete. Pulling static files...' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Running Database Migrations' &&
+        echo '==========================================' &&
+        echo 'Step 1: Running LMS migrations...' &&
+        python manage.py lms migrate --settings=devstack --noinput || (echo 'ERROR: LMS migrations failed!' && exit 1) &&
+        echo 'Step 2: Running LMS student module history migrations...' &&
+        python manage.py lms migrate --database=student_module_history --settings=devstack --noinput || echo 'WARNING: Student module history migrations skipped' &&
+        echo 'Step 3: Running theming migrations (CRITICAL)...' &&
+        python manage.py lms migrate theming --settings=devstack --noinput || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
+        echo 'Step 4: Verifying theming_sitetheme table exists...' &&
+        python /app/verify_theming_table.py || (echo 'ERROR: Table verification failed! Retrying theming migrations...' && python manage.py lms migrate theming --settings=devstack --noinput && python /app/verify_theming_table.py || exit 1) &&
+        echo 'Step 5: Creating Site record...' &&
+        python /app/create_site.py || echo 'WARNING: Site creation skipped' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Migrations Completed Successfully' &&
+        echo '==========================================' &&
+        echo '' &&
+        echo 'Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' &&
         python manage.py lms collectstatic --noinput --settings=devstack &&
-        echo 'Static files pulled. Starting server...' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Starting LMS Server' &&
+        echo '==========================================' &&
         python manage.py lms runserver 0.0.0.0:18000 --settings=devstack
       "
     healthcheck:
@@ -148,16 +165,28 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo '==========================================' &&
+        echo 'Starting CMS Container' &&
+        echo '==========================================' &&
         echo 'Building webpack assets...' &&
         export STATIC_ROOT_LMS=/app/staticfiles &&
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
-        echo 'Running migrations...' &&
-        python manage.py cms migrate --settings=devstack &&
-        echo 'Ensuring theming migrations are applied...' &&
-        python manage.py cms migrate theming --settings=devstack &&
-        echo 'Creating Site record...' &&
-        python manage.py cms shell --settings=devstack -c "from django.contrib.sites.models import Site; from django.conf import settings; domain = getattr(settings, 'LMS_ROOT_URL', 'http://localhost:18000').replace('http://', '').replace('https://', ''); platform_name = getattr(settings, 'PLATFORM_NAME', 'Open edX'); site, created = Site.objects.get_or_create(id=1, defaults={'domain': domain, 'name': platform_name}); site.domain = domain; site.name = platform_name; site.save(); print('Site ready: ' + site.domain)" || echo 'Site creation skipped' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Running Database Migrations' &&
+        echo '==========================================' &&
+        echo 'Step 1: Running CMS migrations...' &&
+        python manage.py cms migrate --settings=devstack --noinput || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
+        echo 'Step 2: Running theming migrations (CRITICAL)...' &&
+        python manage.py cms migrate theming --settings=devstack --noinput || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
+        echo 'Step 3: Creating Site record...' &&
+        python /app/create_site.py || echo 'WARNING: Site creation skipped' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Migrations Completed Successfully' &&
+        echo '==========================================' &&
+        echo '' &&
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
