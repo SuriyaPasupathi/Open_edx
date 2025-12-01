@@ -103,7 +103,6 @@ services:
         echo 'Ensuring theming migrations are applied...' &&
         python manage.py lms migrate theming --settings=devstack || echo 'Theming migrations check completed' &&
         echo 'Creating Site record...' &&
-        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.devstack")\ndjango.setup()\nfrom django.contrib.sites.models import Site\nfrom django.conf import settings\ndomain = getattr(settings, "LMS_ROOT_URL", "http://localhost:18000").replace("http://", "").replace("https://", "")\nplatform_name = getattr(settings, "PLATFORM_NAME", "Open edX")\nsite, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": platform_name})\nif created:\n    print("Site created: " + site.domain)\nelse:\n    site.domain = domain\n    site.name = platform_name\n    site.save()\n    print("Site updated: " + site.domain)\n' > /tmp/create_site.py && python /tmp/create_site.py || echo 'Site creation skipped' && rm -f /tmp/create_site.py &&
         echo 'Migrations complete. Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' &&
         python manage.py lms collectstatic --noinput --settings=devstack &&
@@ -155,7 +154,6 @@ services:
         echo 'Running migrations...' &&
         python manage.py cms migrate --settings=devstack || echo 'Some migrations may have failed' &&
         echo 'Creating Site record...' &&
-        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms.envs.devstack")\ndjango.setup()\nfrom django.contrib.sites.models import Site\nfrom django.conf import settings\ndomain = getattr(settings, "LMS_ROOT_URL", "http://localhost:18000").replace("http://", "").replace("https://", "")\nplatform_name = getattr(settings, "PLATFORM_NAME", "Open edX")\nsite, created = Site.objects.get_or_create(id=1, defaults={"domain": domain, "name": platform_name})\nif created:\n    print("Site created: " + site.domain)\nelse:\n    site.domain = domain\n    site.name = platform_name\n    site.save()\n    print("Site updated: " + site.domain)\n' > /tmp/create_site.py && python /tmp/create_site.py || echo 'Site creation skipped' && rm -f /tmp/create_site.py &&
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
