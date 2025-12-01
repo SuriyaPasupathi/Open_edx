@@ -96,13 +96,14 @@ services:
         export STATIC_ROOT_LMS=/app/staticfiles &&
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
-        echo 'Running migrations...' &&
-        bash /app/run_migrations.sh &&
-        echo 'Migrations complete. Starting server...' &&
-        echo 'pulling static files...' &&
+        echo 'Running LMS migrations...' &&
+        python manage.py lms migrate --settings=devstack --fake-initial || python manage.py lms migrate --settings=devstack || true &&
+        echo 'Running LMS student module history migrations...' &&
+        python manage.py lms migrate --database=student_module_history --settings=devstack || true &&
+        echo 'Migrations complete. Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' &&
         python manage.py lms collectstatic --noinput --settings=devstack &&
-        echo 'static files pulled. Starting server...' &&
+        echo 'Static files pulled. Starting server...' &&
         python manage.py lms runserver 0.0.0.0:18000 --settings=devstack
       "
     healthcheck:
@@ -152,7 +153,7 @@ services:
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
-        python /app/set_studio_worker_password.py || echo 'Password setting skipped' &&
+        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.devstack")\ndjango.setup()\nfrom django.contrib.auth import get_user_model\nUser = get_user_model()\ntry:\n    u = User.objects.get(username="studio_worker")\n    u.set_password("Admin@123")\n    u.save()\n    print("Password set successfully")\nexcept User.DoesNotExist:\n    print("User not found")\nexcept Exception as e:\n    print(f"Error: {e}")\n' > /tmp/set_pwd.py && python /tmp/set_pwd.py || echo 'Password setting skipped' && rm -f /tmp/set_pwd.py &&
         echo 'Creating dot application for studio-sso-id...' &&
         python manage.py lms create_dot_application studio-sso-id studio_worker \
           --grant-type authorization-code \

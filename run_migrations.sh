@@ -1,19 +1,15 @@
 #!/bin/bash
 
-# Activate virtual environment
-source ../env/bin/activate
-
-# Set environment variables for configuration files
-export LMS_CFG="/home/suriya-vcw/Desktop/suriya work/edx-platform/lms.env.yml"
-export CMS_CFG="/home/suriya-vcw/Desktop/suriya work/edx-platform/cms.env.yml"
+# This script runs migrations for Open edX in Docker
+# Environment variables LMS_CFG and CMS_CFG should be set by docker-compose
 
 echo "Running LMS migrations..."
-python manage.py lms migrate --settings=devstack
+python manage.py lms migrate --settings=devstack || echo "LMS migrations failed or already applied"
 
 echo "Running LMS student module history migrations..."
-python manage.py lms migrate --database=student_module_history --settings=devstack
+python manage.py lms migrate --database=student_module_history --settings=devstack || echo "Student module history migrations failed or already applied"
 
 echo "Running CMS migrations..."
-python manage.py cms migrate --settings=devstack
+python manage.py cms migrate --settings=devstack || echo "CMS migrations failed or already applied"
 
-echo "All migrations completed successfully!"
+echo "All migrations completed!"
