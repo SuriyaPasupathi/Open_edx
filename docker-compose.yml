@@ -184,7 +184,6 @@ services:
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
-        printf 'import os\nimport django\nos.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.devstack")\ndjango.setup()\nfrom django.contrib.auth import get_user_model\nUser = get_user_model()\ntry:\n    u = User.objects.get(username="studio_worker")\n    u.set_password("Admin@123")\n    u.save()\n    print("Password set successfully")\nexcept User.DoesNotExist:\n    print("User not found")\nexcept Exception as e:\n    print("Error: " + str(e))\n' > /tmp/set_pwd.py && python /tmp/set_pwd.py || echo 'Password setting skipped' && rm -f /tmp/set_pwd.py &&
         echo 'Creating dot application for studio-sso-id...' &&
         python manage.py lms create_dot_application studio-sso-id studio_worker \
           --grant-type authorization-code \
