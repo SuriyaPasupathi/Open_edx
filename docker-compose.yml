@@ -109,6 +109,8 @@ services:
         python manage.py lms migrate --database=student_module_history --settings=devstack --noinput || echo 'WARNING: Student module history migrations skipped' &&
         echo 'Step 3: Running theming migrations (CRITICAL)...' &&
         python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py lms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
+        echo 'Step 4: Running user_tours migrations...' &&
+        python manage.py lms migrate user_tours --settings=devstack --noinput || echo 'User tours migrations skipped' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
@@ -176,6 +178,8 @@ services:
         python manage.py cms migrate --settings=devstack --noinput || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
         echo 'Step 2: Running theming migrations (CRITICAL)...' &&
         python manage.py cms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py cms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
+        echo 'Step 3: Running user_tours migrations...' &&
+        python manage.py lms migrate user_tours --settings=devstack --noinput || echo 'User tours migrations skipped' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
@@ -184,18 +188,16 @@ services:
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
         echo 'Setting password for studio_worker user...' &&
+        python manage.py lms shell --settings=devstack -c "from django.contrib.auth import get_user_model; User = get_user_model(); u = User.objects.get(username='studio_worker'); u.set_password('Admin@123'); u.save(); print('Password set successfully')" || echo 'Password setting skipped' &&
         echo 'Creating dot application for studio-sso-id...' &&
-        python manage.py lms create_dot_application studio-sso-id studio_worker \
-          --grant-type authorization-code \
-          --skip-authorization \
-          --redirect-uris 'http://localhost:18010/complete/edx-oauth2/' \
-          --scopes user_id \
-          --client-id 'studio-sso-id' \
-          --client-secret 'studio-sso-secret' \
-          --settings=devstack || echo 'Dot application creation skipped (may already exist)' &&
+        python manage.py lms create_dot_application studio-sso-id studio_worker --grant-type authorization-code --skip-authorization --redirect-uris 'http://localhost:18010/complete/edx-oauth2/' --scopes user_id --client-id 'studio-sso-id' --client-secret 'studio-sso-secret' --settings=devstack || echo 'Dot application creation skipped (may already exist)' &&
         echo 'Pulling static files...' &&
+        make pull_translations || echo 'Translations pull skipped' && 
         python manage.py cms collectstatic --noinput --settings=devstack &&
-        echo 'Static files pulled. Starting server...' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Starting CMS Server' &&
+        echo '==========================================' &&
         python manage.py cms runserver 0.0.0.0:18010 --settings=devstack
       "
     healthcheck:
