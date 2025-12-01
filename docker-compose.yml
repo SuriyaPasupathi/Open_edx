@@ -101,16 +101,28 @@ services:
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
         echo '' &&
         echo '==========================================' &&
+        echo 'Clearing Python Cache' &&
+        echo '==========================================' &&
+        find /app -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true &&
+        find /app -name '*.pyc' -delete 2>/dev/null || true &&
+        find /app -name '*.pyo' -delete 2>/dev/null || true &&
+        echo 'Cache cleared successfully' &&
+        echo '' &&
+        echo '==========================================' &&
         echo 'Running Database Migrations' &&
         echo '==========================================' &&
-        echo 'Step 1: Running LMS migrations...' &&
-        python manage.py lms migrate --settings=devstack --noinput || (echo 'ERROR: LMS migrations failed!' && exit 1) &&
+        echo 'Step 1: Running LMS migrations (all apps)...' &&
+        python manage.py lms migrate --settings=devstack --verbosity=2 || (echo 'ERROR: LMS migrations failed!' && exit 1) &&
         echo 'Step 2: Running LMS student module history migrations...' &&
-        python manage.py lms migrate --database=student_module_history --settings=devstack --noinput || echo 'WARNING: Student module history migrations skipped' &&
-        echo 'Step 3: Running theming migrations (CRITICAL)...' &&
-        python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py lms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
-        echo 'Step 4: Running user_tours migrations...' &&
-        python manage.py lms migrate user_tours --settings=devstack --noinput || echo 'User tours migrations skipped' &&
+        python manage.py lms migrate --database=student_module_history --settings=devstack --verbosity=2 || echo 'WARNING: Student module history migrations skipped' &&
+        echo 'Step 3: Running student app migrations (CRITICAL for registration)...' &&
+        python manage.py lms migrate student --settings=devstack --verbosity=2 || (echo 'ERROR: Student migrations failed!' && exit 1) &&
+        echo 'Step 4: Running status app migrations...' &&
+        python manage.py lms migrate status --settings=devstack --verbosity=2 || echo 'WARNING: Status migrations skipped' &&
+        echo 'Step 5: Running theming migrations (CRITICAL)...' &&
+        python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --verbosity=2 || python manage.py lms migrate theming --settings=devstack --verbosity=2 || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
+        echo 'Step 6: Running user_tours migrations...' &&
+        python manage.py lms migrate user_tours --settings=devstack --verbosity=2 || (echo 'ERROR: User tours migrations failed!' && exit 1) &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
@@ -172,18 +184,38 @@ services:
         npm run webpack-dev || echo 'Webpack build skipped or completed' &&
         echo '' &&
         echo '==========================================' &&
+        echo 'Clearing Python Cache' &&
+        echo '==========================================' &&
+        find /app -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true &&
+        find /app -name '*.pyc' -delete 2>/dev/null || true &&
+        find /app -name '*.pyo' -delete 2>/dev/null || true &&
+        echo 'Cache cleared successfully' &&
+        echo '' &&
+        echo '==========================================' &&
+        echo 'Clearing Python Cache' &&
+        echo '==========================================' &&
+        find /app -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true &&
+        find /app -name '*.pyc' -delete 2>/dev/null || true &&
+        find /app -name '*.pyo' -delete 2>/dev/null || true &&
+        echo 'Cache cleared successfully' &&
+        echo '' &&
+        echo '==========================================' &&
         echo 'Running Database Migrations' &&
         echo '==========================================' &&
-        echo 'Step 1: Running CMS migrations...' &&
-        python manage.py cms migrate --settings=devstack --noinput || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
-        echo 'Step 2: Running theming migrations (CRITICAL)...' &&
-        python manage.py cms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py cms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
-        echo 'Step 3: Running user_tours migrations...' &&
-        python manage.py lms migrate user_tours --settings=devstack --noinput || echo 'User tours migrations skipped' &&
+        echo 'Step 1: Running CMS migrations (all apps)...' &&
+        python manage.py cms migrate --settings=devstack --verbosity=2 || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
+        echo 'Step 2: Running student app migrations (CRITICAL for registration)...' &&
+        python manage.py lms migrate student --settings=devstack --verbosity=2 || (echo 'ERROR: Student migrations failed!' && exit 1) &&
+        echo 'Step 3: Running status app migrations...' &&
+        python manage.py lms migrate status --settings=devstack --verbosity=2 || echo 'WARNING: Status migrations skipped' &&
+        echo 'Step 4: Running theming migrations (CRITICAL)...' &&
+        python manage.py cms migrate openedx.core.djangoapps.theming --settings=devstack --verbosity=2 || python manage.py cms migrate theming --settings=devstack --verbosity=2 || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
+        echo 'Step 5: Running user_tours migrations...' &&
+        python manage.py lms migrate user_tours --settings=devstack --verbosity=2 || (echo 'ERROR: User tours migrations failed!' && exit 1) &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
-        echo '==========================================' &&s
+        echo '==========================================' &&
         echo '' &&
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
@@ -202,7 +234,7 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:18010 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 5 
       start_period: 60s
     networks:
       - edx_network
