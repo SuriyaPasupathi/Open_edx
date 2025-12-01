@@ -109,8 +109,6 @@ services:
         python manage.py lms migrate --database=student_module_history --settings=devstack --noinput || echo 'WARNING: Student module history migrations skipped' &&
         echo 'Step 3: Running theming migrations (CRITICAL)...' &&
         python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py lms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
-        echo 'Step 4: Creating Site record...' &&
-        python manage.py lms shell --settings=devstack -c "from django.contrib.sites.models import Site; from django.conf import settings; domain = getattr(settings, 'LMS_ROOT_URL', 'http://localhost:18000').replace('http://', '').replace('https://', ''); platform_name = getattr(settings, 'PLATFORM_NAME', 'Open edX'); site, created = Site.objects.get_or_create(id=1, defaults={'domain': domain, 'name': platform_name}); site.domain = domain; site.name = platform_name; site.save(); print('Site ready: ' + site.domain)" || echo 'WARNING: Site creation skipped' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
@@ -178,8 +176,6 @@ services:
         python manage.py cms migrate --settings=devstack --noinput || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
         echo 'Step 2: Running theming migrations (CRITICAL)...' &&
         python manage.py cms migrate openedx.core.djangoapps.theming --settings=devstack --noinput || python manage.py cms migrate theming --settings=devstack --noinput || echo 'Migration check completed' &&
-        echo 'Step 3: Creating Site record...' &&
-        python manage.py cms shell --settings=devstack -c "from django.contrib.sites.models import Site; from django.conf import settings; domain = getattr(settings, 'LMS_ROOT_URL', 'http://localhost:18000').replace('http://', '').replace('https://', ''); platform_name = getattr(settings, 'PLATFORM_NAME', 'Open edX'); site, created = Site.objects.get_or_create(id=1, defaults={'domain': domain, 'name': platform_name}); site.domain = domain; site.name = platform_name; site.save(); print('Site ready: ' + site.domain)" || echo 'WARNING: Site creation skipped' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
