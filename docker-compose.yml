@@ -22,9 +22,7 @@ services:
   mongodb:
     image: mongo:6.0
     container_name: edx_mongodb
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=1234
+    command: mongod --noauth
     ports:
       - "27017:27017"
     volumes:
