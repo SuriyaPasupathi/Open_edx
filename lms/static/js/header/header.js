@@ -29,26 +29,45 @@ $(document).ready(function() {
     $('.global-header .toggle-user-dropdown, .global-header .toggle-user-dropdown span').click(function(e) {
         var $dropdownMenu = $('.global-header .nav-item .dropdown-user-menu');
         var $userDropdown = $('.global-header .toggle-user-dropdown');
-        if ($dropdownMenu.is(':visible')) {
-            $dropdownMenu.addClass('hidden');
-            $userDropdown.attr('aria-expanded', 'false');
-        } else {
+        // Use hasClass instead of is(':visible') for more reliable detection
+        if ($dropdownMenu.hasClass('hidden')) {
             $dropdownMenu.removeClass('hidden');
             $dropdownMenu.find('.dropdown-item')[0].focus();
             $userDropdown.attr('aria-expanded', 'true');
+        } else {
+            $dropdownMenu.addClass('hidden');
+            $userDropdown.attr('aria-expanded', 'false');
         }
         $('.global-header .toggle-user-dropdown').toggleClass('open');
         e.stopPropagation();
     });
-
-    // Hide user dropdown on click away
-    if ($('.global-header .nav-item .dropdown-user-menu').length) {
-        $(window).click(function(e) {
-            var $dropdownMenu = $('.global-header .nav-item .dropdown-user-menu');
-            var $userDropdown = $('.global-header .toggle-user-dropdown');
-            if ($userDropdown.is(':visible') && !$(e.target).is('.dropdown-item, .toggle-user-dropdown')) {
+    
+    // Fallback: Also handle clicks directly on toggle-user-dropdown without global-header parent
+    $('.toggle-user-dropdown, .toggle-user-dropdown span').on('click', function(e) {
+        var $dropdownMenu = $(this).closest('.nav-item-dropdown').find('.dropdown-user-menu');
+        var $userDropdown = $(this).closest('.toggle-user-dropdown');
+        if ($dropdownMenu.length) {
+            if ($dropdownMenu.hasClass('hidden')) {
+                $dropdownMenu.removeClass('hidden');
+                $dropdownMenu.find('.dropdown-item')[0].focus();
+                $userDropdown.attr('aria-expanded', 'true');
+            } else {
                 $dropdownMenu.addClass('hidden');
                 $userDropdown.attr('aria-expanded', 'false');
+            }
+            $userDropdown.toggleClass('open');
+            e.stopPropagation();
+        }
+    });
+
+    // Hide user dropdown on click away
+    if ($('.global-header .nav-item .dropdown-user-menu').length || $('.dropdown-user-menu').length) {
+        $(window).click(function(e) {
+            var $dropdownMenu = $('.global-header .nav-item .dropdown-user-menu, .dropdown-user-menu');
+            var $userDropdown = $('.global-header .toggle-user-dropdown, .toggle-user-dropdown');
+            if ($userDropdown.length && !$(e.target).closest('.toggle-user-dropdown, .dropdown-user-menu').length) {
+                $dropdownMenu.addClass('hidden');
+                $userDropdown.attr('aria-expanded', 'false').removeClass('open');
             }
         });
     }

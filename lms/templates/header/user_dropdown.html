@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 
 from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_urls_for_user
 from openedx.features.enterprise_support.utils import get_enterprise_learner_generic_name, get_enterprise_learner_portal
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 %>
 
 <%
@@ -34,7 +35,22 @@ should_show_order_history = not enterprise_customer_portal
     </a>
 </div>
 <div class="nav-item hidden-mobile nav-item-dropdown" tabindex="-1">
-    <div class="toggle-user-dropdown" role="button" aria-label=${_("Options Menu")} aria-expanded="false" tabindex="0" aria-controls="user-menu">
+    <div class="toggle-user-dropdown" role="button" aria-label=${_("Options Menu")} aria-expanded="false" tabindex="0" aria-controls="user-menu" onclick="
+        var menu = document.getElementById('user-menu');
+        var toggle = this;
+        if (menu) {
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                toggle.setAttribute('aria-expanded', 'true');
+                toggle.classList.add('open');
+            } else {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('open');
+            }
+        }
+        event.stopPropagation();
+    ">
         <span class="fa fa-caret-down" aria-hidden="true"></span>
     </div>
     <div class="dropdown-user-menu hidden" aria-label=${_("More Options")} role="menu" id="user-menu" tabindex="-1">
@@ -48,6 +64,12 @@ should_show_order_history = not enterprise_customer_portal
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${settings.ACCOUNT_MICROFRONTEND_URL}" role="menuitem">${_("Account")}</a></div>
         % if should_show_order_history:
             <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${settings.ORDER_HISTORY_MICROFRONTEND_URL}" role="menuitem">${_("Order History")}</a></div>
+        % endif
+        % if user.is_staff:
+            <%
+            studio_url = configuration_helpers.get_value('CMS_ROOT_URL', 'http://' + settings.CMS_BASE)
+            %>
+            <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${studio_url}" role="menuitem">${_("Studio")}</a></div>
         % endif
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('logout')}" role="menuitem">${_("Sign Out")}</a></div>
     </div>
