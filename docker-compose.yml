@@ -120,6 +120,11 @@ services:
         echo 'Migrations Completed Successfully' &&
         echo '==========================================' &&
         echo '' &&
+        echo 'Setting up OAuth Login Service...' &&
+        python manage.py lms manage_user login_service_user login_service_user@fake.email --unusable-password --settings=devstack || echo 'Login service user may already exist' &&
+        python manage.py lms create_dot_application "Login Service for JWT Cookies" login_service_user --grant-type password --public --client-id login-service-client-id --scopes "read,email,profile,user_id" --settings=devstack || echo 'OAuth application may already exist' &&
+        echo 'OAuth Login Service setup complete' &&
+        echo '' &&
         echo 'Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' &&
         python manage.py lms collectstatic --noinput --settings=devstack &&

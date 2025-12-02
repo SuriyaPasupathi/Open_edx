@@ -468,6 +468,11 @@ FEATURES.update({
     'ENABLE_ENTERPRISE_INTEGRATION': True,
 })
 
+# Disable comments service URL if ENABLE_DISCUSSION_SERVICE is False
+# This prevents connection errors when the forum service is not available
+if not FEATURES.get('ENABLE_DISCUSSION_SERVICE', False):
+    COMMENTS_SERVICE_URL = ''
+
 ENABLE_MKTG_SITE = os.environ.get('ENABLE_MARKETING_SITE', False)
 MARKETING_SITE_ROOT = os.environ.get('MARKETING_SITE_ROOT', 'http://localhost:8080')
 
