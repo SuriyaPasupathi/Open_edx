@@ -368,6 +368,55 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] += (
 OPENAPI_CACHE_TIMEOUT = 0
 
 #####################################################################
+# Update MongoDB connection settings from MONGODB_SETTINGS if provided
+try:
+    if MONGODB_SETTINGS:
+        mongodb_config = MONGODB_SETTINGS
+        # Update DOC_STORE_CONFIG with MongoDB settings from YAML
+        if 'host' in mongodb_config:
+            DOC_STORE_CONFIG['host'] = mongodb_config['host']
+        if 'port' in mongodb_config:
+            DOC_STORE_CONFIG['port'] = mongodb_config['port']
+        if 'db' in mongodb_config:
+            DOC_STORE_CONFIG['db'] = mongodb_config['db']
+        if 'username' in mongodb_config:
+            DOC_STORE_CONFIG['user'] = mongodb_config['username']
+        if 'password' in mongodb_config:
+            DOC_STORE_CONFIG['password'] = mongodb_config['password']
+        # MongoDB root user is authenticated against 'admin' database by default
+        if 'username' in mongodb_config and mongodb_config.get('username') == 'root':
+            DOC_STORE_CONFIG['auth_source'] = 'admin'
+        elif 'auth_source' in mongodb_config:
+            DOC_STORE_CONFIG['auth_source'] = mongodb_config['auth_source']
+        
+        # Update CONTENTSTORE DOC_STORE_CONFIG
+        CONTENTSTORE['DOC_STORE_CONFIG'].update(DOC_STORE_CONFIG)
+        # Update CONTENTSTORE OPTIONS
+        if 'host' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['host'] = mongodb_config['host']
+        if 'port' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['port'] = mongodb_config['port']
+        if 'db' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['db'] = mongodb_config['db']
+        if 'username' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['user'] = mongodb_config['username']
+        if 'password' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['password'] = mongodb_config['password']
+        # MongoDB root user is authenticated against 'admin' database by default
+        if 'username' in mongodb_config and mongodb_config.get('username') == 'root':
+            CONTENTSTORE['OPTIONS']['auth_source'] = 'admin'
+        elif 'auth_source' in mongodb_config:
+            CONTENTSTORE['OPTIONS']['auth_source'] = mongodb_config['auth_source']
+        
+        # Update MODULESTORE DOC_STORE_CONFIG for all stores
+        for store in MODULESTORE['default']['OPTIONS']['stores']:
+            if 'DOC_STORE_CONFIG' in store:
+                store['DOC_STORE_CONFIG'].update(DOC_STORE_CONFIG)
+except (NameError, AttributeError):
+    # MONGODB_SETTINGS not defined, use defaults
+    pass
+
+#####################################################################
 # set replica set of contentstore to none as we haven't setup any for lms in devstack
 CONTENTSTORE['DOC_STORE_CONFIG']['replicaSet'] = None
 
