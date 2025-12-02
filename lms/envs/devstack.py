@@ -26,8 +26,29 @@ INTERNAL_IPS = ('127.0.0.1',)
 
 USE_I18N = True
 DEFAULT_TEMPLATE_ENGINE['OPTIONS']['debug'] = True
-LMS_BASE = 'localhost:18000'
-CMS_BASE = 'localhost:18010'
+
+# Use LMS_ROOT_URL from YAML if available, otherwise default to localhost
+# This allows overriding via lms.env.docker.yml for production deployments
+_LMS_ROOT_URL_FROM_YAML = globals().get('LMS_ROOT_URL', '')
+if _LMS_ROOT_URL_FROM_YAML and _LMS_ROOT_URL_FROM_YAML != '':
+    # Extract host from LMS_ROOT_URL if it's set from YAML
+    parsed_url = urlparse(_LMS_ROOT_URL_FROM_YAML)
+    LMS_BASE = parsed_url.netloc or 'localhost:18000'
+    # Keep the YAML value for LMS_ROOT_URL
+    LMS_ROOT_URL = _LMS_ROOT_URL_FROM_YAML
+else:
+    # Default to localhost for local development
+    LMS_BASE = 'localhost:18000'
+    LMS_ROOT_URL = f'http://{LMS_BASE}'
+
+# Use CMS_ROOT_URL from YAML if available
+_CMS_ROOT_URL_FROM_YAML = globals().get('CMS_ROOT_URL', '')
+if _CMS_ROOT_URL_FROM_YAML and _CMS_ROOT_URL_FROM_YAML != '':
+    parsed_cms_url = urlparse(_CMS_ROOT_URL_FROM_YAML)
+    CMS_BASE = parsed_cms_url.netloc or 'localhost:18010'
+else:
+    CMS_BASE = 'localhost:18010'
+
 SITE_NAME = LMS_BASE
 
 SESSION_COOKIE_NAME = 'lms_sessionid'
@@ -40,7 +61,7 @@ CELERY_ALWAYS_EAGER = True
 CLEAR_REQUEST_CACHE_ON_TASK_COMPLETION = False
 HTTPS = 'off'
 
-LMS_ROOT_URL = f'http://{LMS_BASE}'
+# LMS_ROOT_URL should already be set above (either from YAML or default)
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 ENTERPRISE_API_URL = f'{LMS_INTERNAL_ROOT_URL}/enterprise/api/v1/'
 IDA_LOGOUT_URI_LIST = [
