@@ -111,18 +111,10 @@ services:
         echo '==========================================' &&
         echo 'Running Database Migrations' &&
         echo '==========================================' &&
-        echo 'Step 1: Running LMS migrations (all apps)...' &&
+        echo 'Step 1: Running LMS migrations...' &&
         python manage.py lms migrate --settings=devstack --verbosity=2 || (echo 'ERROR: LMS migrations failed!' && exit 1) &&
         echo 'Step 2: Running LMS student module history migrations...' &&
         python manage.py lms migrate --database=student_module_history --settings=devstack --verbosity=2 || echo 'WARNING: Student module history migrations skipped' &&
-        echo 'Step 3: Running student app migrations (CRITICAL for registration)...' &&
-        python manage.py lms migrate student --settings=devstack --verbosity=2 || (echo 'ERROR: Student migrations failed!' && exit 1) &&
-        echo 'Step 4: Running status app migrations...' &&
-        python manage.py lms migrate status --settings=devstack --verbosity=2 || echo 'WARNING: Status migrations skipped' &&
-        echo 'Step 5: Running theming migrations (CRITICAL)...' &&
-        python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --verbosity=2 || python manage.py lms migrate theming --settings=devstack --verbosity=2 || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
-        echo 'Step 6: Running user_tours migrations...' &&
-        python manage.py lms migrate user_tours --settings=devstack --verbosity=2 || (echo 'ERROR: User tours migrations failed!' && exit 1) &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
@@ -202,16 +194,8 @@ services:
         echo '==========================================' &&
         echo 'Running Database Migrations' &&
         echo '==========================================' &&
-        echo 'Step 1: Running CMS migrations (all apps)...' &&
+        echo 'Running CMS migrations...' &&
         python manage.py cms migrate --settings=devstack --verbosity=2 || (echo 'ERROR: CMS migrations failed!' && exit 1) &&
-        echo 'Step 2: Running student app migrations (CRITICAL for registration)...' &&
-        python manage.py lms migrate student --settings=devstack --verbosity=2 || (echo 'ERROR: Student migrations failed!' && exit 1) &&
-        echo 'Step 3: Running status app migrations...' &&
-        python manage.py lms migrate status --settings=devstack --verbosity=2 || echo 'WARNING: Status migrations skipped' &&
-        echo 'Step 4: Running theming migrations (CRITICAL)...' &&
-        python manage.py cms migrate openedx.core.djangoapps.theming --settings=devstack --verbosity=2 || python manage.py cms migrate theming --settings=devstack --verbosity=2 || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
-        echo 'Step 5: Running user_tours migrations...' &&
-        python manage.py lms migrate user_tours --settings=devstack --verbosity=2 || (echo 'ERROR: User tours migrations failed!' && exit 1) &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
