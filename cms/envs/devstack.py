@@ -321,10 +321,20 @@ SOCIAL_AUTH_EDX_OAUTH2_KEY = 'studio-sso-key'
 SOCIAL_AUTH_EDX_OAUTH2_SECRET = 'studio-sso-secret'  # in stage, prod would be high-entropy secret
 # routed internally server-to-server
 SOCIAL_AUTH_EDX_OAUTH2_URL_ROOT = ENV_TOKENS.get('SOCIAL_AUTH_EDX_OAUTH2_URL_ROOT', 'http://edx.devstack.lms:18000')
-SOCIAL_AUTH_EDX_OAUTH2_PUBLIC_URL_ROOT = 'http://localhost:18000'  # used in browser redirect
+# used in browser redirect
+SOCIAL_AUTH_EDX_OAUTH2_PUBLIC_URL_ROOT = ENV_TOKENS.get('SOCIAL_AUTH_EDX_OAUTH2_PUBLIC_URL_ROOT', 'http://localhost:18000')
 
 # Don't form the return redirect URL with HTTPS on devstack
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = False
+
+# Redirect to Studio home page after OAuth login (not LMS dashboard)
+# Use CMS_ROOT_URL from YAML config if available, otherwise use CMS_BASE
+if CMS_ROOT_URL:
+    LOGIN_REDIRECT_URL = f'{CMS_ROOT_URL}/home/'
+    SOCIAL_AUTH_LOGIN_REDIRECT_URL = f'{CMS_ROOT_URL}/home/'
+else:
+    LOGIN_REDIRECT_URL = f'http://{CMS_BASE}/home/'
+    SOCIAL_AUTH_LOGIN_REDIRECT_URL = f'http://{CMS_BASE}/home/'
 
 #################### Network configuration ####################
 # Devstack is directly exposed to the caller
