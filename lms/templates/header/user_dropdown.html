@@ -67,7 +67,12 @@ should_show_order_history = not enterprise_customer_portal
         % endif
         % if user.is_staff:
             <%
-            studio_url = configuration_helpers.get_value('CMS_ROOT_URL', 'http://' + settings.CMS_BASE)
+            # Check if Authoring MFE is enabled, otherwise use CMS URL
+            authoring_mfe_url = configuration_helpers.get_value('COURSE_AUTHORING_MICROFRONTEND_URL', None)
+            if authoring_mfe_url:
+                studio_url = authoring_mfe_url + '/home'
+            else:
+                studio_url = configuration_helpers.get_value('CMS_ROOT_URL', 'http://' + settings.CMS_BASE)
             %>
             <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${studio_url}" role="menuitem">${_("Studio")}</a></div>
         % endif

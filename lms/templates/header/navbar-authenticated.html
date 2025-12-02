@@ -54,7 +54,12 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
     % endif
     % if user.is_staff:
       <%
-      studio_url = configuration_helpers.get_value('CMS_ROOT_URL', 'http://' + settings.CMS_BASE)
+      # Check if Authoring MFE is enabled, otherwise use CMS URL
+      authoring_mfe_url = configuration_helpers.get_value('COURSE_AUTHORING_MICROFRONTEND_URL', None)
+      if authoring_mfe_url:
+          studio_url = authoring_mfe_url + '/home'
+      else:
+          studio_url = configuration_helpers.get_value('CMS_ROOT_URL', 'http://' + settings.CMS_BASE)
       %>
       <div class="mobile-nav-item hidden-mobile nav-item nav-tab">
           <a class="tab-nav-link" href="${studio_url}" target="_blank"
