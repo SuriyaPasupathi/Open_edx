@@ -22,7 +22,6 @@ services:
   mongodb:
     image: mongo:6.0
     container_name: edx_mongodb
-    command: mongod --noauth
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=1234
