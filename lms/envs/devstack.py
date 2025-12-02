@@ -246,7 +246,10 @@ ECOMMERCE_PUBLIC_URL_ROOT = 'http://localhost:18130'
 ECOMMERCE_API_URL = 'http://edx.devstack.ecommerce:18130/api/v2'
 
 ############## Comments CONFIGURATION SETTINGS ###############
-COMMENTS_SERVICE_URL = 'http://edx.devstack.forum:4567'
+# COMMENTS_SERVICE_URL will be set from YAML config (lms.env.docker.yml)
+# Default to empty string to avoid connection errors when discussion service is disabled
+# This will be overridden by YAML if ENABLE_DISCUSSION_SERVICE is True
+COMMENTS_SERVICE_URL = ''
 
 ############## Credentials CONFIGURATION SETTINGS ###############
 CREDENTIALS_INTERNAL_SERVICE_URL = 'http://edx.devstack.credentials:18150'
@@ -355,6 +358,9 @@ JWT_AUTH.update({
         '4Ee9qG5T38LFe8_oAuFCEntimWxN9F3P-FJQy43TL7wG54WodgiM0EgzkeLr5K6cDnyckWjTuZbWI-4ffcTgTZsL_Kq1owa_J2ngEfxMCObnzG'
         'y5ZLcTUomo4rZLjghVpq6KZxfS6I1Vz79ZsMVUWEdXOYePCKKsrQG20ogQEkmTf9FT_SouC6jPcHLXw"}]}'
     ),
+    # OAuth2 Login Service Client ID - required for JWT cookie creation
+    'JWT_LOGIN_CLIENT_ID': 'login-service-client-id',
+    'JWT_LOGIN_SERVICE_USERNAME': 'login_service_user',
 })
 add_plugins(__name__, ProjectType.LMS, SettingsType.DEVSTACK)
 
@@ -458,7 +464,8 @@ DISCUSSION_SPAM_URLS = []
 
 FEATURES.update({
     'AUTOMATIC_AUTH_FOR_TESTING': True,
-    'ENABLE_DISCUSSION_SERVICE': True,
+    # ENABLE_DISCUSSION_SERVICE is controlled by YAML config (lms.env.docker.yml)
+    # Don't override it here - let YAML settings take precedence
     'SHOW_HEADER_LANGUAGE_SELECTOR': True,
 
     # Enable enterprise integration by default.

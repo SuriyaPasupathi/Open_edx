@@ -123,6 +123,8 @@ services:
         python manage.py lms migrate openedx.core.djangoapps.theming --settings=devstack --verbosity=2 || python manage.py lms migrate theming --settings=devstack --verbosity=2 || (echo 'ERROR: Theming migrations failed!' && exit 1) &&
         echo 'Step 6: Running user_tours migrations...' &&
         python manage.py lms migrate user_tours --settings=devstack --verbosity=2 || (echo 'ERROR: User tours migrations failed!' && exit 1) &&
+        echo 'Step 7: Running user_authn migrations (CRITICAL for OAuth login)...' &&
+        python manage.py lms migrate user_authn --settings=devstack --verbosity=2 || (echo 'ERROR: User authn migrations failed!' && exit 1) &&
         echo '' &&
         echo '==========================================' &&
         echo 'Migrations Completed Successfully' &&
