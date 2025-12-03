@@ -208,8 +208,8 @@ services:
         echo '' &&
         echo 'Migrations complete. Creating studio_worker user...' &&
         python manage.py lms manage_user studio_worker studioworker@gmail.com --unusable-password --settings=devstack || echo 'User creation skipped (may already exist)' &&
-        echo 'Creating dot application for studio-sso-key...' &&
-        python manage.py lms create_dot_application studio-sso-key studio_worker --grant-type authorization-code --skip-authorization --redirect-uris 'http://52.52.41.225:18010/complete/edx-oauth2/' --scopes user_id profile email --client-id 'studio-sso-key' --client-secret 'studio-sso-secret' --settings=devstack || echo 'Dot application creation skipped (may already exist)' &&
+        echo 'Creating dot application for studio-sso-id...' &&
+        python manage.py lms create_dot_application studio-sso-id studio_worker --grant-type authorization-code --skip-authorization --redirect-uris 'http://52.52.41.225:18010/complete/edx-oauth2/' --scopes user_id --client-id 'studio-sso-id' --client-secret 'studio-sso-secret' --settings=devstack || echo 'Dot application creation skipped (may already exist)' &&
         echo 'Pulling static files...' &&
         make pull_translations || echo 'Translations pull skipped' && 
         python manage.py cms collectstatic --noinput --settings=devstack &&
