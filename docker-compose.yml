@@ -98,7 +98,9 @@ services:
         echo 'Building webpack assets...' &&
         export STATIC_ROOT_LMS=/app/staticfiles &&
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
-        npm run webpack-dev || echo 'Webpack build skipped or completed' &&
+        echo 'Running webpack build (this may take a few minutes)...' &&
+        npm run webpack-dev > /tmp/webpack.log 2>&1 || (echo 'Webpack build had issues, but continuing...' && cat /tmp/webpack.log | tail -20) &&
+        echo 'Webpack build completed' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Clearing Python Cache' &&
@@ -178,7 +180,9 @@ services:
         echo 'Building webpack assets...' &&
         export STATIC_ROOT_LMS=/app/staticfiles &&
         export STATIC_ROOT_CMS=/app/staticfiles/studio &&
-        npm run webpack-dev || echo 'Webpack build skipped or completed' &&
+        echo 'Running webpack build (this may take a few minutes)...' &&
+        npm run webpack-dev > /tmp/webpack.log 2>&1 || (echo 'Webpack build had issues, but continuing...' && cat /tmp/webpack.log | tail -20) &&
+        echo 'Webpack build completed' &&
         echo '' &&
         echo '==========================================' &&
         echo 'Clearing Python Cache' &&
