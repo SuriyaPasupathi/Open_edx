@@ -1164,23 +1164,19 @@ def get_cert_data(student, course, enrollment_mode, course_grade=None):
     from lms.djangoapps.certificates.api import certificates_viewable_for_course
     certificates_are_viewable = certificates_viewable_for_course(course)
     
-    # If user has passed the course, return cert_data to show certificate UI
-    # This ensures certificate shows when user completes course, even if settings aren't perfect
-    if course_grade and course_grade.passed:
-        # User has passed - show certificate data
-        return cert_data
+    # IMPORTANT: Only show certificate if user has passed the course
+    # Certificate should only be available after course completion
+    if not course_grade or not course_grade.passed:
+        # User has not passed the course - do not show certificate
+        return None
     
-    # If certificates are viewable, return cert_data immediately
-    # This ensures certificate UI shows when can_view_certificate is True in metadata API
-    if certificates_are_viewable:
-        return cert_data
-    
-    # Original strict checks (only if certificates are not viewable and user hasn't passed)
+    # User has passed the course - show certificate data
+    # Additional checks to ensure certificate can be displayed
     if not certs_api.can_show_certificate_message(course, student, course_grade, certificates_enabled_for_course):
-        return
+        return None
 
     if not certs_api.get_active_web_certificate(course) and not certs_api.is_valid_pdf_certificate(cert_data):
-        return
+        return None
 
     return cert_data
 
@@ -1372,8 +1368,8 @@ def get_course_lti_endpoints(request, course_id):
     View that, given a course_id, returns the a JSON object that enumerates all of the LTI endpoints for that course.
     The LTI 2.0 result service spec at
     http://www.imsglobal.org/lti/ltiv2p0/uml/purl.imsglobal.org/vocab/lis/v2/outcomes/Result/service.html
-    says "This specification document does not prescribe a method for discovering the endpoint URLs."  This view
-    function implements one way of discovering these endpoints, returning a JSON array when accessed.
+    says "This specification document does not prescribe     function implements one way of discovering these endpoints, returning a JSON array when accessed.
+a method for discovering the endpoint URLs."  This view
     Arguments:
         request (django request object):  the HTTP request object that triggered this view function
         course_id (unicode):  id associated with the course
@@ -1465,16 +1461,130 @@ def is_course_passed(student, course, course_grade=None):
     return course_grade.passed
 
 
-# Grades can potentially be written - if so, let grading manage the transaction.
+#Grades can potentially be written - if so, let grading manage the transaction.
+#custom_code for certification_iuntergration with icg-lms certifiaction autmomation
 @transaction.non_atomic_requests
+def call_external_certificate_api(student, course_key, course, certificate_status):
+    """
+    Call external API services when certificate is requested.
+    API call is mandatory if EXTERNAL_CERTIFICATE_API_URL is configured.
+    
+    Args:
+        student: User object
+        course_key: Course key
+        course: Course object
+        certificate_status: Certificate status dictionary
+        
+    Returns:
+        dict: Response from external API or None if URL is not configured
+    """
+    # Get external API URL from settings
+    # Settings are loaded from lms.env.yml via production.py -> devstack.py
+    external_api_url = getattr(settings, 'EXTERNAL_CERTIFICATE_API_URL', None)
+    
+    log.info(
+        f"External certificate API check - url: {external_api_url}, "
+        f"user: {student.id}, course: {course_key}"
+    )
+    
+    if not external_api_url:
+        log.debug("External certificate API URL is not configured, skipping API call")
+        return None
+    
+    try:
+        # Prepare payload for FastAPI webhook endpoint
+        # Format matches FastAPI /webhook/course-completed endpoint
+        payload = {
+            'username': student.username,
+            'email': student.email if student.email else '',
+            'courseId': str(course_key),  # FastAPI expects 'courseId' (camelCase)
+            'courseName': course.display_name if course else '',
+            'courseNumber': course.number if course else '',
+            'userId': student.id,
+            'certificateUrl': certificate_status.get('download_url', ''),
+            'certificatePdfUrl': certificate_status.get('download_url', ''),
+            'certificateUuid': certificate_status.get('uuid', ''),
+            'completedDate': datetime.now(UTC).isoformat(),
+            'grade': '',  # Can be added if available
+            'mode': '',  # Can be added if available
+            'status': 'requested',  # Certificate status
+        }
+        
+        # Get API key/token if configured
+        api_key = getattr(settings, 'EXTERNAL_CERTIFICATE_API_KEY', None)
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        if api_key:
+            headers['Authorization'] = f'Bearer {api_key}'
+            # Or use API key header: headers['X-API-Key'] = api_key
+        
+        # Call external API
+        timeout = getattr(settings, 'EXTERNAL_CERTIFICATE_API_TIMEOUT', 10)
+        response = requests.post(
+            external_api_url,
+            json=payload,
+            headers=headers,
+            timeout=timeout
+        )
+        
+        if response.status_code in [200, 201, 202]:
+            log.info(
+                f"Successfully called external certificate API for user {student.id}, "
+                f"course {course_key}. Status: {response.status_code}"
+            )
+            return {
+                'success': True,
+                'status_code': response.status_code,
+                'response': response.json() if response.content else None
+            }
+        else:
+            log.warning(
+                f"External certificate API returned error status {response.status_code} "
+                f"for user {student.id}, course {course_key}. Response: {response.text}"
+            )
+            return {
+                'success': False,
+                'status_code': response.status_code,
+                'error': response.text
+            }
+            
+    except Timeout:
+        log.error(
+            f"Timeout calling external certificate API for user {student.id}, "
+            f"course {course_key}. Timeout: {timeout}s"
+        )
+        return {'success': False, 'error': 'timeout'}
+    except ConnectionError as e:
+        log.error(
+            f"Connection error calling external certificate API for user {student.id}, "
+            f"course {course_key}. Error: {str(e)}"
+        )
+        return {'success': False, 'error': 'connection_error'}
+    except Exception as e:
+        log.error(
+            f"Error calling external certificate API for user {student.id}, "
+            f"course {course_key}. Error: {str(e)}",
+            exc_info=True
+        )
+        return {'success': False, 'error': str(e)}
+
+
 @require_POST
 def generate_user_cert(request, course_id):
+    print("generate_user_cert function called", request   )
+    print("course_id", course_id)
     """
     Request that a course certificate be generated for the user.
 
     In addition to requesting generation, this method also checks for and returns the certificate status. Note that
     because generation is an asynchronous process, the certificate may not have been generated when its status is
     retrieved.
+    
+    This function will call external APIs if configured via settings:
+    - EXTERNAL_CERTIFICATE_API_URL: URL of external API endpoint (mandatory if set)
+    - EXTERNAL_CERTIFICATE_API_KEY: API key/token for authentication (optional)
+    - EXTERNAL_CERTIFICATE_API_TIMEOUT: Request timeout in seconds (default: 10)
 
     Args:
         request (HttpRequest): The POST request to this view.
@@ -1498,6 +1608,11 @@ def generate_user_cert(request, course_id):
     if not course:
         return HttpResponseBadRequest(_("Course is not valid"))
 
+    # Check if user has passed the course BEFORE attempting certificate generation
+    if not is_course_passed(student, course):
+        log.info("User %s has not passed the course: %s - certificate generation denied", student.username, course_id)
+        return HttpResponseBadRequest(_("Your certificate will be available when you pass the course."))
+
     log.info(f'Attempt will be made to generate a course certificate for {student.id} : {course_key}.')
 
     try:
@@ -1509,10 +1624,6 @@ def generate_user_cert(request, course_id):
             course_key,
         )
         return HttpResponseBadRequest(str(e))
-
-    if not is_course_passed(student, course):
-        log.info("User %s has not passed the course: %s", student.username, course_id)
-        return HttpResponseBadRequest(_("Your certificate will be available when you pass the course."))
 
     certificate_status = certs_api.certificate_downloadable_status(student, course.id)
 
@@ -1528,6 +1639,9 @@ def generate_user_cert(request, course_id):
         return HttpResponseBadRequest(_("Certificate has already been created."))
     elif certificate_status["is_generating"]:
         return HttpResponseBadRequest(_("Certificate is being created."))
+
+    # External API call is now handled in certificate generation function (generation.py)
+    # It will be called automatically after the certificate is successfully generated via Celery task
 
     return HttpResponse()
 

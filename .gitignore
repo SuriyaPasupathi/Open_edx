@@ -16,6 +16,10 @@ cms/envs/private.py
 ### Python artifacts
 *.pyc
 
+env/
+
+
+
 ### Editor and IDE artifacts
 *~
 *.swp

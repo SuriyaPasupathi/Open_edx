@@ -61,6 +61,24 @@ CELERY_ALWAYS_EAGER = True
 CLEAR_REQUEST_CACHE_ON_TASK_COMPLETION = False
 HTTPS = 'off'
 
+# External Certificate API Configuration (loaded from YAML)
+# These settings are loaded from lms.env.yml via production.py
+# They are available here because production.py loads YAML and devstack.py imports from production.py
+EXTERNAL_CERTIFICATE_API_ENABLED = globals().get('EXTERNAL_CERTIFICATE_API_ENABLED', False)
+EXTERNAL_CERTIFICATE_API_URL = globals().get('EXTERNAL_CERTIFICATE_API_URL', None)
+EXTERNAL_CERTIFICATE_API_KEY = globals().get('EXTERNAL_CERTIFICATE_API_KEY', None)
+EXTERNAL_CERTIFICATE_API_TIMEOUT = globals().get('EXTERNAL_CERTIFICATE_API_TIMEOUT', 10)
+
+# Log external API configuration for debugging
+import logging
+_logger = logging.getLogger(__name__)
+_logger.info("=" * 80)
+_logger.info("External Certificate API Configuration:")
+_logger.info(f"  EXTERNAL_CERTIFICATE_API_ENABLED: {EXTERNAL_CERTIFICATE_API_ENABLED}")
+_logger.info(f"  EXTERNAL_CERTIFICATE_API_URL: {EXTERNAL_CERTIFICATE_API_URL}")
+_logger.info(f"  EXTERNAL_CERTIFICATE_API_TIMEOUT: {EXTERNAL_CERTIFICATE_API_TIMEOUT}")
+_logger.info("=" * 80)
+
 # LMS_ROOT_URL should already be set above (either from YAML or default)
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 ENTERPRISE_API_URL = f'{LMS_INTERNAL_ROOT_URL}/enterprise/api/v1/'
@@ -218,6 +236,7 @@ COURSE_DISCOVERY_MEANINGS = {
     },
     'modes': {
         'name': 'Course Type',
+        
         'terms': {
             'honor': 'Honor',
             'verified': 'Verified',
@@ -619,6 +638,9 @@ AUTH_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/lat
 
 ############################ AI_TRANSLATIONS ##################################
 AI_TRANSLATIONS_API_URL = 'http://localhost:18760/api/v1'
+
+
+
 
 ############################ CSRF ##################################
 

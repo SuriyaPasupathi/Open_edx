@@ -1087,6 +1087,10 @@ urlpatterns += [
     path('api/mfe_config/v1', include(('lms.djangoapps.mfe_config_api.urls', 'lms.djangoapps.mfe_config_api'), namespace='mfe_config_api'))
 ]
 
+# Health API urls
+urlpatterns += [
+    path('api/health/v1/', include(('lms.djangoapps.health_api.urls', 'lms.djangoapps.health_api'), namespace='health_api'))
+]
 urlpatterns += [
     path('api/notifications/', include('openedx.core.djangoapps.notifications.urls')),
 ]
