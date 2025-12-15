@@ -14,8 +14,11 @@ from edx_django_utils.plugins import add_plugins
 
 from openedx.core.djangoapps.plugins.constants import ProjectType, SettingsType
 
+# from openedx.core.lib.features_setting_proxy import FeaturesProxy
+
 from .production import *  # pylint: disable=wildcard-import, unused-wildcard-import
 
+# FEATURES = FeaturesProxy(globals())
 # Don't use S3 in devstack, fall back to filesystem
 STORAGES['default']['BACKEND'] = 'django.core.files.storage.FileSystemStorage'
 ORA2_FILEUPLOAD_BACKEND = 'django'
@@ -26,32 +29,13 @@ INTERNAL_IPS = ('127.0.0.1',)
 
 USE_I18N = True
 DEFAULT_TEMPLATE_ENGINE['OPTIONS']['debug'] = True
-
-# Use LMS_ROOT_URL from YAML if available, otherwise default to localhost
-# This allows overriding via lms.env.docker.yml for production deployments
-_LMS_ROOT_URL_FROM_YAML = globals().get('LMS_ROOT_URL', '')
-if _LMS_ROOT_URL_FROM_YAML and _LMS_ROOT_URL_FROM_YAML != '':
-    # Extract host from LMS_ROOT_URL if it's set from YAML
-    parsed_url = urlparse(_LMS_ROOT_URL_FROM_YAML)
-    LMS_BASE = parsed_url.netloc or 'localhost:18000'
-    # Keep the YAML value for LMS_ROOT_URL
-    LMS_ROOT_URL = _LMS_ROOT_URL_FROM_YAML
-else:
-    # Default to localhost for local development
-    LMS_BASE = 'localhost:18000'
-    LMS_ROOT_URL = f'http://{LMS_BASE}'
-
-# Use CMS_ROOT_URL from YAML if available
-_CMS_ROOT_URL_FROM_YAML = globals().get('CMS_ROOT_URL', '')
-if _CMS_ROOT_URL_FROM_YAML and _CMS_ROOT_URL_FROM_YAML != '':
-    parsed_cms_url = urlparse(_CMS_ROOT_URL_FROM_YAML)
-    CMS_BASE = parsed_cms_url.netloc or 'localhost:18010'
-else:
-    CMS_BASE = 'localhost:18010'
-
+LMS_BASE = 'localhost:18000'
+CMS_BASE = 'localhost:18010'
 SITE_NAME = LMS_BASE
 
 SESSION_COOKIE_NAME = 'lms_sessionid'
+
+EXTERNAL_CERTIFICATE_API_URL = 'http://localhost:8000/webhook/course-completed'
 
 # By default don't use a worker, execute tasks as if they were local functions
 CELERY_ALWAYS_EAGER = True
@@ -61,25 +45,7 @@ CELERY_ALWAYS_EAGER = True
 CLEAR_REQUEST_CACHE_ON_TASK_COMPLETION = False
 HTTPS = 'off'
 
-# External Certificate API Configuration (loaded from YAML)
-# These settings are loaded from lms.env.yml via production.py
-# They are available here because production.py loads YAML and devstack.py imports from production.py
-EXTERNAL_CERTIFICATE_API_ENABLED = globals().get('EXTERNAL_CERTIFICATE_API_ENABLED', False)
-EXTERNAL_CERTIFICATE_API_URL = globals().get('EXTERNAL_CERTIFICATE_API_URL', None)
-EXTERNAL_CERTIFICATE_API_KEY = globals().get('EXTERNAL_CERTIFICATE_API_KEY', None)
-EXTERNAL_CERTIFICATE_API_TIMEOUT = globals().get('EXTERNAL_CERTIFICATE_API_TIMEOUT', 10)
-
-# Log external API configuration for debugging
-import logging
-_logger = logging.getLogger(__name__)
-_logger.info("=" * 80)
-_logger.info("External Certificate API Configuration:")
-_logger.info(f"  EXTERNAL_CERTIFICATE_API_ENABLED: {EXTERNAL_CERTIFICATE_API_ENABLED}")
-_logger.info(f"  EXTERNAL_CERTIFICATE_API_URL: {EXTERNAL_CERTIFICATE_API_URL}")
-_logger.info(f"  EXTERNAL_CERTIFICATE_API_TIMEOUT: {EXTERNAL_CERTIFICATE_API_TIMEOUT}")
-_logger.info("=" * 80)
-
-# LMS_ROOT_URL should already be set above (either from YAML or default)
+LMS_ROOT_URL = f'http://{LMS_BASE}'
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 ENTERPRISE_API_URL = f'{LMS_INTERNAL_ROOT_URL}/enterprise/api/v1/'
 IDA_LOGOUT_URI_LIST = [
@@ -181,31 +147,30 @@ PIPELINE['SASS_ARGUMENTS'] = '--debug-info'
 
 ########################### VERIFIED CERTIFICATES #################################
 
-FEATURES['AUTOMATIC_VERIFY_STUDENT_IDENTITY_FOR_TESTING'] = True
+AUTOMATIC_VERIFY_STUDENT_IDENTITY_FOR_TESTING = True
 
 ########################### External REST APIs #################################
-FEATURES['ENABLE_OAUTH2_PROVIDER'] = True
-FEATURES['ENABLE_MOBILE_REST_API'] = True
-FEATURES['ENABLE_VIDEO_ABSTRACTION_LAYER_API'] = True
+ENABLE_MOBILE_REST_API = True
+ENABLE_VIDEO_ABSTRACTION_LAYER_API = True
 
 ########################## SECURITY #######################
-FEATURES['ENABLE_MAX_FAILED_LOGIN_ATTEMPTS'] = False
-FEATURES['SQUELCH_PII_IN_LOGS'] = False
-FEATURES['PREVENT_CONCURRENT_LOGINS'] = False
+ENABLE_MAX_FAILED_LOGIN_ATTEMPTS = False
+SQUELCH_PII_IN_LOGS = False
+PREVENT_CONCURRENT_LOGINS = False
 
 ########################### Milestones #################################
-FEATURES['MILESTONES_APP'] = True
+MILESTONES_APP = True
 
 ########################### Entrance Exams #################################
-FEATURES['ENTRANCE_EXAMS'] = True
+ENTRANCE_EXAMS = True
 
 ################################ COURSE LICENSES ################################
-FEATURES['LICENSING'] = True
+LICENSING = True
 
 
 ########################## Courseware Search #######################
-FEATURES['ENABLE_COURSEWARE_SEARCH'] = True
-FEATURES['ENABLE_COURSEWARE_SEARCH_FOR_COURSE_STAFF'] = True
+ENABLE_COURSEWARE_SEARCH = True
+ENABLE_COURSEWARE_SEARCH_FOR_COURSE_STAFF = True
 SEARCH_ENGINE = 'search.elastic.ElasticSearchEngine'
 SEARCH_COURSEWARE_CONTENT_LOG_PARAMS = True
 
@@ -218,11 +183,11 @@ ELASTIC_SEARCH_CONFIG = [
 ]
 
 ########################## Dashboard Search #######################
-FEATURES['ENABLE_DASHBOARD_SEARCH'] = False
+ENABLE_DASHBOARD_SEARCH = False
 
 
 ########################## Certificates Web/HTML View #######################
-FEATURES['CERTIFICATES_HTML_VIEW'] = True
+CERTIFICATES_HTML_VIEW = True
 
 
 ########################## Course Discovery #######################
@@ -236,7 +201,6 @@ COURSE_DISCOVERY_MEANINGS = {
     },
     'modes': {
         'name': 'Course Type',
-        
         'terms': {
             'honor': 'Honor',
             'verified': 'Verified',
@@ -245,14 +209,14 @@ COURSE_DISCOVERY_MEANINGS = {
     'language': LANGUAGE_MAP,
 }
 
-FEATURES['ENABLE_COURSE_DISCOVERY'] = False
+ENABLE_COURSE_DISCOVERY = False
 # Setting for overriding default filtering facets for Course discovery
 # COURSE_DISCOVERY_FILTERS = ["org", "language", "modes"]
-FEATURES['COURSES_ARE_BROWSEABLE'] = True
+COURSES_ARE_BROWSEABLE = True
 HOMEPAGE_COURSE_MAX = 9
 
 # Software secure fake page feature flag
-FEATURES['ENABLE_SOFTWARE_SECURE_FAKE'] = True
+ENABLE_SOFTWARE_SECURE_FAKE = True
 
 # Setting for the testing of Software Secure Result Callback
 VERIFY_STUDENT["SOFTWARE_SECURE"] = {
@@ -266,17 +230,17 @@ SEARCH_SKIP_ENROLLMENT_START_DATE_FILTERING = True
 
 
 ########################## Shopping cart ##########################
-FEATURES['ENABLE_COSMETIC_DISPLAY_PRICE'] = True
+ENABLE_COSMETIC_DISPLAY_PRICE = True
 
 ######################### Program Enrollments #####################
-FEATURES['ENABLE_ENROLLMENT_RESET'] = True
+ENABLE_ENROLLMENT_RESET = True
 
 ########################## Third Party Auth #######################
 
-if FEATURES.get('ENABLE_THIRD_PARTY_AUTH') and (
-        'common.djangoapps.third_party_auth.dummy.DummyBackend' not in AUTHENTICATION_BACKENDS
-):
-    AUTHENTICATION_BACKENDS = ['common.djangoapps.third_party_auth.dummy.DummyBackend'] + list(AUTHENTICATION_BACKENDS)
+# if ENABLE_THIRD_PARTY_AUTH and (
+#         'common.djangoapps.third_party_auth.dummy.DummyBackend' not in AUTHENTICATION_BACKENDS
+# ):
+#     AUTHENTICATION_BACKENDS = ['common.djangoapps.third_party_auth.dummy.DummyBackend'] + list(AUTHENTICATION_BACKENDS)
 
 ########################## Authn MFE Context API #######################
 ENABLE_DYNAMIC_REGISTRATION_FIELDS = True
@@ -333,10 +297,32 @@ LEARNING_MICROFRONTEND_URL = os.environ.get("LEARNING_MICROFRONTEND_URL", "http:
 LEARNING_MICROFRONTEND_NETLOC = os.environ.get("LEARNING_MICROFRONTEND_NETLOC", urlparse(LEARNING_MICROFRONTEND_URL).netloc)
 
 ###################### Cross-domain requests ######################
-FEATURES['ENABLE_CORS_HEADERS'] = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = ()
+ENABLE_CORS_HEADERS = True
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_INSECURE = True  # Allow HTTP (non-HTTPS) requests for development
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'http://localhost:6000',
+    'http://localhost:7000',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:6000',
+    'http://127.0.0.1:7000',
+    # FastAPI edX service
+]
+
+# Log CORS configuration for debugging
+import logging
+logging.info("=" * 80)
+logging.info("CORS CONFIGURATION:")
+logging.info("=" * 80)
+logging.info(f"ENABLE_CORS_HEADERS: {ENABLE_CORS_HEADERS}")
+logging.info(f"CORS_ORIGIN_ALLOW_ALL: {CORS_ORIGIN_ALLOW_ALL}")
+logging.info(f"CORS_ALLOW_CREDENTIALS: {CORS_ALLOW_CREDENTIALS}")
+logging.info(f"CORS_ALLOW_INSECURE: {CORS_ALLOW_INSECURE}")
+logging.info(f"CORS_ORIGIN_WHITELIST: {CORS_ORIGIN_WHITELIST}")
+logging.info("=" * 80)
+
 
 LOGIN_REDIRECT_WHITELIST.extend([
     CMS_BASE,
@@ -359,6 +345,7 @@ LOGIN_REDIRECT_WHITELIST.extend([
     'localhost:1996',  # frontend-app-learner-dashboard
     ENTERPRISE_LEARNER_PORTAL_NETLOC,  # frontend-app-learner-portal-enterprise
     ENTERPRISE_ADMIN_PORTAL_NETLOC,  # frontend-app-admin-portal
+    'localhost:8000',  # FastAPI edX service
 ])
 
 ###################### JWTs ######################
@@ -408,55 +395,6 @@ REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] += (
 OPENAPI_CACHE_TIMEOUT = 0
 
 #####################################################################
-# Update MongoDB connection settings from MONGODB_SETTINGS if provided
-try:
-    if MONGODB_SETTINGS:
-        mongodb_config = MONGODB_SETTINGS
-        # Update DOC_STORE_CONFIG with MongoDB settings from YAML
-        if 'host' in mongodb_config:
-            DOC_STORE_CONFIG['host'] = mongodb_config['host']
-        if 'port' in mongodb_config:
-            DOC_STORE_CONFIG['port'] = mongodb_config['port']
-        if 'db' in mongodb_config:
-            DOC_STORE_CONFIG['db'] = mongodb_config['db']
-        if 'username' in mongodb_config:
-            DOC_STORE_CONFIG['user'] = mongodb_config['username']
-        if 'password' in mongodb_config:
-            DOC_STORE_CONFIG['password'] = mongodb_config['password']
-        # MongoDB root user is authenticated against 'admin' database by default
-        if 'username' in mongodb_config and mongodb_config.get('username') == 'root':
-            DOC_STORE_CONFIG['auth_source'] = 'admin'
-        elif 'auth_source' in mongodb_config:
-            DOC_STORE_CONFIG['auth_source'] = mongodb_config['auth_source']
-        
-        # Update CONTENTSTORE DOC_STORE_CONFIG
-        CONTENTSTORE['DOC_STORE_CONFIG'].update(DOC_STORE_CONFIG)
-        # Update CONTENTSTORE OPTIONS
-        if 'host' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['host'] = mongodb_config['host']
-        if 'port' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['port'] = mongodb_config['port']
-        if 'db' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['db'] = mongodb_config['db']
-        if 'username' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['user'] = mongodb_config['username']
-        if 'password' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['password'] = mongodb_config['password']
-        # MongoDB root user is authenticated against 'admin' database by default
-        if 'username' in mongodb_config and mongodb_config.get('username') == 'root':
-            CONTENTSTORE['OPTIONS']['auth_source'] = 'admin'
-        elif 'auth_source' in mongodb_config:
-            CONTENTSTORE['OPTIONS']['auth_source'] = mongodb_config['auth_source']
-        
-        # Update MODULESTORE DOC_STORE_CONFIG for all stores
-        for store in MODULESTORE['default']['OPTIONS']['stores']:
-            if 'DOC_STORE_CONFIG' in store:
-                store['DOC_STORE_CONFIG'].update(DOC_STORE_CONFIG)
-except (NameError, AttributeError):
-    # MONGODB_SETTINGS not defined, use defaults
-    pass
-
-#####################################################################
 # set replica set of contentstore to none as we haven't setup any for lms in devstack
 CONTENTSTORE['DOC_STORE_CONFIG']['replicaSet'] = None
 
@@ -485,6 +423,7 @@ COMMUNICATIONS_MICROFRONTEND_URL = 'http://localhost:1984'
 AUTHN_MICROFRONTEND_URL = 'http://localhost:1999'
 AUTHN_MICROFRONTEND_DOMAIN = 'localhost:1999'
 EXAMS_DASHBOARD_MICROFRONTEND_URL = 'http://localhost:2020'
+CATALOG_MICROFRONTEND_URL = 'http://localhost:1998/catalog'
 
 ################### FRONTEND APPLICATION DISCUSSIONS ###################
 DISCUSSIONS_MICROFRONTEND_URL = 'http://localhost:2002'
@@ -496,22 +435,15 @@ DISCUSSION_SPAM_URLS = []
 
 ############## Docker based devstack settings #######################
 
-FEATURES.update({
-    'AUTOMATIC_AUTH_FOR_TESTING': True,
-    'ENABLE_DISCUSSION_SERVICE': True,
-    'SHOW_HEADER_LANGUAGE_SELECTOR': True,
+AUTOMATIC_AUTH_FOR_TESTING = True
+ENABLE_DISCUSSION_SERVICE = True
+SHOW_HEADER_LANGUAGE_SELECTOR = True
 
-    # Enable enterprise integration by default.
-    # See https://github.com/openedx/edx-enterprise/blob/master/docs/development.rst for
-    # more background on edx-enterprise.
-    # Toggle this off if you don't want anything to do with enterprise in devstack.
-    'ENABLE_ENTERPRISE_INTEGRATION': True,
-})
-
-# Disable comments service URL if ENABLE_DISCUSSION_SERVICE is False
-# This prevents connection errors when the forum service is not available
-if not FEATURES.get('ENABLE_DISCUSSION_SERVICE', False):
-    COMMENTS_SERVICE_URL = ''
+# Enable enterprise integration by default.
+# See https://github.com/openedx/edx-enterprise/blob/master/docs/development.rst for
+# more background on edx-enterprise.
+# Toggle this off if you don't want anything to do with enterprise in devstack.
+ENABLE_ENTERPRISE_INTEGRATION = True
 
 ENABLE_MKTG_SITE = os.environ.get('ENABLE_MARKETING_SITE', False)
 MARKETING_SITE_ROOT = os.environ.get('MARKETING_SITE_ROOT', 'http://localhost:8080')
@@ -557,7 +489,7 @@ SYSTEM_WIDE_ROLE_CLASSES.append(
     'system_wide_roles.SystemWideRoleAssignment',
 )
 
-if FEATURES.get('ENABLE_ENTERPRISE_INTEGRATION'):
+if ENABLE_ENTERPRISE_INTEGRATION:
     SYSTEM_WIDE_ROLE_CLASSES.append(
         'enterprise.SystemWideEnterpriseUserRoleAssignment',
     )
@@ -592,8 +524,8 @@ DCS_SESSION_COOKIE_SAMESITE_FORCE_ALL = True
 # LOGGING['loggers']['django.db.backends'] = {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False}
 
 ################### Special Exams (Proctoring) and Prereqs ###################
-FEATURES['ENABLE_SPECIAL_EXAMS'] = True
-FEATURES['ENABLE_PREREQUISITE_COURSES'] = True
+ENABLE_SPECIAL_EXAMS = True
+ENABLE_PREREQUISITE_COURSES = True
 
 # Used in edx-proctoring for ID generation in lieu of SECRET_KEY - dummy value
 # (ref MST-637)
@@ -639,9 +571,6 @@ AUTH_DOCUMENTATION_URL = 'https://course-catalog-api-guide.readthedocs.io/en/lat
 ############################ AI_TRANSLATIONS ##################################
 AI_TRANSLATIONS_API_URL = 'http://localhost:18760/api/v1'
 
-
-
-
 ############################ CSRF ##################################
 
 # MFEs that will call this service in devstack
@@ -658,6 +587,10 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:18450',  # frontend-app-support-tools
     'http://localhost:1994',  # frontend-app-gradebook
     'http://localhost:1996',  # frontend-app-learner-dashboard
+    'http://localhost:8000',
+    'http://localhost:6000',
+    'http://localhost:7000',
+    # FastAPI edX service
 ]
 
 RETIREMENT_STATES = [

@@ -34,6 +34,7 @@ class HealthAPIView(APIView):
         """
         try:
             response_data = {
+                "checking":"just suma checking",
                 "status": "healthy",
                 "timestamp": datetime.utcnow().isoformat() + "Z",
                 "service": "lms"

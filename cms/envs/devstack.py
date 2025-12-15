@@ -304,6 +304,27 @@ SECRET_KEY = '85920908f28904ed733fe576320db18cabd7b6cd'
 FEATURES['ENABLE_CORS_HEADERS'] = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_INSECURE = True  # Allow HTTP (non-HTTPS) requests for development
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'http://localhost:6000',
+    'http://localhost:7000',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:6000',
+    'http://127.0.0.1:7000',
+    # FastAPI edX service
+]
+
+# Log CORS configuration for debugging
+logging.info("=" * 80)
+logging.info("CMS CORS CONFIGURATION:")
+logging.info("=" * 80)
+logging.info(f"ENABLE_CORS_HEADERS: {FEATURES.get('ENABLE_CORS_HEADERS', False)}")
+logging.info(f"CORS_ORIGIN_ALLOW_ALL: {CORS_ORIGIN_ALLOW_ALL}")
+logging.info(f"CORS_ALLOW_CREDENTIALS: {CORS_ALLOW_CREDENTIALS}")
+logging.info(f"CORS_ALLOW_INSECURE: {CORS_ALLOW_INSECURE}")
+logging.info(f"CORS_ORIGIN_WHITELIST: {CORS_ORIGIN_WHITELIST}")
+logging.info("=" * 80)
 
 ################### Special Exams (Proctoring) and Prereqs ###################
 FEATURES['ENABLE_SPECIAL_EXAMS'] = True

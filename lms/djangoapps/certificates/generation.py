@@ -16,13 +16,13 @@ from django.conf import settings
 from pytz import UTC
 from requests.exceptions import ConnectionError, Timeout
 from xmodule.modulestore.django import modulestore
-
 from lms.djangoapps.certificates import api as certs_api
 from lms.djangoapps.certificates.data import CertificateStatuses
 from lms.djangoapps.certificates.models import GeneratedCertificate
 from lms.djangoapps.certificates.utils import emit_certificate_event, get_preferred_certificate_name
 
 log = logging.getLogger(__name__)
+
 
 def generate_course_certificate(user, course_key, status, enrollment_mode, course_grade, generation_mode):
     """
@@ -123,8 +123,8 @@ def _call_external_certificate_api(user, course_key, cert):
     """
     # Get external API URL from settings
     # Settings are loaded from lms.env.yml via production.py -> devstack.py
-    external_api_url = getattr(settings, 'EXTERNAL_CERTIFICATE_API_URL', None)
-    external_api_timeout = getattr(settings, 'EXTERNAL_CERTIFICATE_API_TIMEOUT', 10)
+    external_api_url = EXTERNAL_CERTIFICATE_API_URL
+    external_api_timeout = EXTERNAL_CERTIFICATE_API_TIMEOUT
     external_api_key = getattr(settings, 'EXTERNAL_CERTIFICATE_API_KEY', None)
     
     # Log all settings values for debugging
