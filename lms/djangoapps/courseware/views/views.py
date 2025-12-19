@@ -1480,7 +1480,7 @@ def call_external_certificate_api(student, course_key, course, certificate_statu
     """
     # Get external API URL from settings
     # Settings are loaded from lms.env.yml via production.py -> devstack.py
-    external_api_url = getattr(settings, 'EXTERNAL_CERTIFICATE_API_URL', None)
+    external_api_url = getattr(settings, 'EXTERNAL_CERTIFICATE_API_URL',"http://localhost:8000/webhook/course-completed")
     
     log.info(
         f"External certificate API check - url: {external_api_url}, "

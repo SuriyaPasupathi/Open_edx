@@ -123,8 +123,8 @@ def _call_external_certificate_api(user, course_key, cert):
     """
     # Get external API URL from settings
     # Settings are loaded from lms.env.yml via production.py -> devstack.py
-    external_api_url = EXTERNAL_CERTIFICATE_API_URL
-    external_api_timeout = EXTERNAL_CERTIFICATE_API_TIMEOUT
+    external_api_url = getattr(settings, 'EXTERNAL_CERTIFICATE_API_URL', None)
+    external_api_timeout = getattr(settings, 'EXTERNAL_CERTIFICATE_API_TIMEOUT', 30)
     external_api_key = getattr(settings, 'EXTERNAL_CERTIFICATE_API_KEY', None)
     
     # Log all settings values for debugging
